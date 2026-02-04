@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+
+<!-- ✔ Google Site Verification (correctamente colocado) -->
+<meta name="google-site-verification" content="vD1F80dNjXhWhgxG7U8fRYBPnhG6ThwzzU76gc9pDGc"/>
+<style>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    :root {
+        --neon-blue: #00e5ff;
+        --electric-pink: #ff0055;
+        --gold: #ffcc00;
+        --bg-dark: #02040a;
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* BARRA DE TOKENS (IZQUIERDA) */
+    .token-bar {
+        position: fixed; top: 15px; left: 0;
+        background: var(--neon-blue); color: #000;
+        padding: 10px 20px; border-radius: 0 20px 20px 0;
+        font-weight: bold; z-index: 1000; font-size: 14px;
+        box-shadow: 0 0 15px var(--neon-blue);
+    }
+
+    /* BURBUJAS FLOTANTES */
+    .bubble {
+        position: fixed; right: 26px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 999;
+    }
+    #btn-wheel { bottom: 120px; width: 80px; height: 80px; background: linear-gradient(135deg, var(--neon-blue), #007bb5); font-size: 35px; box-shadow: 0 0 20px var(--neon-blue); }
+    #btn-key { bottom: 40px; width: 55px; height: 55px; background: linear-gradient(135deg, var(--gold), #ff6600); font-size: 25px; box-shadow: 0 0 15px #ff6600; }
+
+    /* OVERLAY RULETA */
+    #overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+        display: none; justify-content: center; align-items: flex-start;
+        z-index: 10000; overflow-y: auto; padding: 20px 0;
+    }
+
+    #container {
+        position: relative; width: 90%; max-width: 400px;
+        background: #0a0f1e; padding: 20px; border-radius: 30px;
+        border: 2px solid var(--neon-blue); text-align: center;
+        margin: auto;
+    }
+
+    /* LA FLECHA INDICADORA (FIJA ARRIBA) */
+    #arrow-indicator {
+    position: absolute;
+    top: 55px; /* Esto la baja para que no tape el botón [ CERRAR ] */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 40px solid #ff0055; /* Color Rosa Neón */
+    z-index: 11000;
+    filter: drop-shadow(0 0 10px #ff0055);
+}
+    canvas {
+        width: 100%; max-width: 320px; height: auto;
+        border-radius: 50%; border: 10px solid #111;
+        margin-top: 25px; /* Espacio para que la flecha no tape el centro */
+    }
+
+    /* BOTON GIRAR */
+    .spin-btn {
+        background: #00bfff; border: none; padding: 18px;
+        width: 100%; border-radius: 15px; color: #000;
+        font-weight: bold; font-size: 20px; margin-top: 20px;
+        text-transform: uppercase; box-shadow: 0 0 15px #00bfff;
+    }
+
+    /* FILA DE 2 EN 2 (BUNDLES) */
+    .bundle-grid {
+        margin-top: 25px;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* DOS COLUMNAS */
+        gap: 10px;
+    }
+
+    .bundle-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--neon-blue);
+        border-radius: 12px; padding: 15px;
+        text-align: center;
+    }
+    .bundle-card b { display: block; color: var(--neon-blue); font-size: 14px; }
+    .bundle-card span { font-size: 11px; color: #aaa; }
+</style>
+</head>
+<body>
+
+<div class="token-bar">TOKENS: <span id="tk-val">0</span></div>
+
+<div id="btn-wheel" class="bubble" onclick="openWheel()">🎡</div>
+<div id="btn-key" class="bubble" onclick="openKey()">🔐</div>
+
+<div id="overlay">
+    <div id="container">
+        <div onclick="openWheel()" style="color:red; cursor:pointer; font-weight:bold; font-size:12px; margin-bottom: 10px;">[ CERRAR ]</div>
+        
+        <div id="arrow-indicator"></div>
+
+       
+        <canvas id="canvas" width="500" height="500"></canvas>
+        
+        <div id="status-msg" style="margin-top:15px; color:var(--neon-blue); font-size:14px; font-weight:bold; height:20px;"></div>
+        
+        <button class="spin-btn" onclick="startSpin()">GIRAR ×2 TOKENS</button>
+
+        <div class="bundle-grid" id="bundle-list"></div>
+    </div>
+</div>
+
+<script>
+    const KEY_SISTEMA = "VERSION_Móvil_FLECHA_V1";
+    const WHATSAPP = "50373826693";
+    let rotation = 0;
+    let isSpinning = false;
+
+    // Control de Versión / Reinicio
+    if(localStorage.getItem("v_key") !== KEY_SISTEMA){
+        localStorage.clear();
+        localStorage.setItem("v_key", KEY_SISTEMA);
+    }
+
+    let tokens = parseInt(localStorage.getItem("tks")) || 0;
+    function sync() { document.getElementById("tk-val").innerText = tokens; localStorage.setItem("tks", tokens); }
+    sync();
+
+    // Inyectar Bundles 2x2
+    const packs = [{p: 0.99, t: 1}, {p: 1.90, t: 2}, {p: 2.80, t: 3}, {p: 3.80, t: 4}, {p: 4.99, t: 5}, {p: 5.99, t: 6}, {p: 6.99, t: 7}, {p: 7.85, t: 8}, {p: 8.95, t: 9}, {p: 9.99, t: 10}, {p: 12.99, t: 14}, {p: 14.99, t: 19}, {p: 16.99, t: 20}, {p: 17.85, t: 23}, {p: 19.99, t: 25}];
+    const bundleList = document.getElementById("bundle-list");
+    packs.forEach(p => {
+        bundleList.innerHTML += `
+            <div class="bundle-card" onclick="window.open('https://wa.me/${WHATSAPP}?text=Compro ${p.t} Tokens')">
+                <b>${p.t} TOKENS</b>
+                <span>$${p.p} USD</span>
+            </div>
+        `;
+    });
+
+    // Función de Canje
+    function openKey() {
+        let code = prompt("🔐 INGRESA TU CÓDIGO:");
+        const CODES = {"AZ1278898":1,"AX1376123":2,"AB1772132":3,"AM1381243":4,"HZ19371221":5,"JA18627182":6,"AL186213313":12,"NEW8137812":16,"AV193812321":22,"AQ1371319318":32,"AP103819381":92};
+        let used = JSON.parse(localStorage.getItem("used")) || [];
+        if(used.includes(code)) return alert("Código ya usado.");
+        if(CODES[code]) {
+            tokens += CODES[code];
+            used.push(code);
+            localStorage.setItem("used", JSON.stringify(used));
+            sync();
+            alert("¡Tokens añadidos!");
+        } else { if(code) alert("Código inválido."); }
+    }
+
+    // Dibujar Ruleta
+    const cvs = document.getElementById("canvas");
+    const ctx = cvs.getContext("2d");
+    const sectors = [
+        {n: "40 Robux", prob: 0.01, c: "#ff0000"}, {n: "100 Diamantes", prob: 0.00001, c: "#00ff00"}, 
+        {n: "Premium Bronce", prob: 0.05, c: "#ff00ff"}, {n: "Premium Bronce V", prob: 0.05, c: "#ffff00"}, 
+        {n: "Desc. VIP Ultra", prob: 0.07, c: "#00ffff"}, {n: "Bono +10%", prob: 0.40, c: "#ff8000"}, 
+        {n: "Bono +15%", prob: 0.50, c: "#7f00ff"}, {n: "Bono +25%", prob: 0.45, c: "#0000ff"},
+        {n: "80 Robux", prob: 0, c: "#333"}, {n: "500 Robux", prob: 0, c: "#222"}, {n: "500 Diamantes", prob: 0, c: "#111"}
+    ];
+
+    function draw() {
+        let arc = (Math.PI * 2) / sectors.length;
+        sectors.forEach((s, i) => {
+            ctx.beginPath(); ctx.fillStyle = s.c; ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 250, i*arc, (i+1)*arc); ctx.fill();
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(i*arc + arc/2);
+            ctx.fillStyle = "#fff"; ctx.font = "bold 14px Orbitron"; ctx.fillText(s.n, 100, 5); ctx.restore();
+        });
+    }
+    draw();
+
+    // Lógica de Giro Sincronizada con la Flecha
+    function startSpin() {
+    if (isSpinning) return;
+    if (tokens < 2) return alert("Necesitas 2 Tokens.");
+
+    tokens -= 2; 
+    sync();
+    isSpinning = true;
+    document.getElementById("status-msg").innerText = "GIRANDO...";
+
+    // 1. Decidir ganador
+    let r = Math.random();
+    let s = 0; 
+    let win = 0;
+    for (let i = 0; i < sectors.length; i++) {
+        s += sectors[i].prob;
+        if (r < s) { 
+            win = i; 
+            break; 
+        }
+    }
+
+    // 2. Lógica de la Flecha (Sincronización arriba)
+    let gradosSector = 360 / sectors.length;
+    let vueltasBase = 360 * 10;
+    
+    // Calculamos para que el centro del premio quede a 270 grados (donde está tu flecha)
+    let destino = (360 - (win * gradosSector)) - (gradosSector / 2);
+    rotation += vueltasBase + ((destino + 270) - (rotation % 360) + 360) % 360;
+
+    const canvasRuleta = document.getElementById("canvas");
+    canvasRuleta.style.transition = "transform 5s cubic-bezier(0.15, 0, 0.15, 1)";
+    canvasRuleta.style.transform = `rotate(${rotation}deg)`;
+
+    // 3. Mostrar resultado
+    setTimeout(() => {
+        isSpinning = false;
+        let premioFinal = sectors[win].n;
+        document.getElementById("status-msg").innerText = "¡GANASTE: " + premioFinal + "!";
+        
+        setTimeout(() => {
+            window.open(`https://wa.me/${WHATSAPP}?text=Gané ${premioFinal} en la ruleta!`, "_blank");
+        }, 1000);
+    }, 5000);
+}
+
+    function openWheel() {
+        let o = document.getElementById("overlay");
+        o.style.display = (o.style.display == "flex") ? "none" : "flex";
+    }
+</script>
+
+<style>
+/* ====== Base y Reset ====== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;
+  font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:linear-gradient(180deg,#0e0f11 0%,#050606 100%);
+  color:#ffffff;
+  overflow-x:hidden;
+  text-align:center;
+  padding-top:88px;
+}
+a{text-decoration:none}
+
+/* ====== TOP BAR ====== */
+.top-bar{
+  position:fixed;
+  top:0;left:0;width:100%;
+  background:linear-gradient(90deg,#ffffff,#bfc3c7);
+  border-bottom:3px solid rgba(255,255,255,.25);
+  box-shadow:0 6px 24px rgba(255,255,255,.25);
+}
+.top-bar div{font-weight:700;color:#000}
+
+/* ====== HEADER ====== */
+header{margin-top:6px;padding:8px 12px}
+h1{
+  font-size:2rem;
+  color:#ffffff;
+  letter-spacing:.6px;
+  text-shadow:0 0 18px rgba(255,255,255,.6);
+}
+h2{
+  color:#cfd2d6;
+  font-weight:500;
+  margin-top:6px;
+  font-size:1rem;
+}
+.small{
+  font-size:.95rem;
+  color:#bfc3c7;
+  margin-top:8px;
+}
+
+/* ====== CONTAINER ====== */
+.container{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+  justify-content:center;
+  padding:20px;
+  max-width:1100px;
+  margin:8px auto;
+}
+
+/* ====== CARD ====== */
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  width:94%;
+  max-width:420px;
+  border-radius:18px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  box-shadow:0 10px 34px rgba(0,0,0,.7), inset 0 -4px 18px rgba(255,255,255,.08);
+  transition:transform .28s,box-shadow .28s;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.25);
+}
+.card:hover{
+  transform:translateY(-8px) scale(1.02);
+  box-shadow:0 22px 50px rgba(255,255,255,.25);
+}
+
+.robux-title{
+  font-size:1.35rem;
+  color:#ffffff;
+  margin-bottom:8px;
+  font-weight:700;
+  text-shadow:0 0 14px rgba(255,255,255,.5);
+}
+
+/* ====== PRICE (SOLO ESTO EN VERDE) ====== */
+.price{
+  font-weight:800;
+  color:#00ff6a; /* VERDE */
+  font-size:1.15rem;
+  text-shadow:0 0 10px rgba(0,255,106,.6);
+}
+
+.price-bar{
+  width:92%;
+  height:12px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#00ff6a,#00c853); /* VERDE */
+  margin-top:10px;
+  box-shadow:0 6px 30px rgba(0,255,106,.35) inset;
+  position:relative;
+  overflow:hidden;
+}
+.price-bar::after{
+  content:"";
+  position:absolute;
+  left:-30%;
+  top:0;
+  width:50%;
+  height:100%;
+ 
+background:linear-gradient(90deg,rgba(255,255,255,.45),rgba(255,255,255,0));
+  transform:skewX(-18deg);
+  animation:barShine 2.2s linear infinite;
+}
+@keyframes barShine{to{left:120%}}
+
+/* ====== BUTTON ====== */
+.btn{
+  margin-top:14px;
+  padding:16px 26px;
+  font-size:1.05rem;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(90deg,#ffffff,#bfc3c7);
+  color:#000;
+  font-weight:800;
+  box-shadow:0 10px 30px rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.25);
+}
+.btn:hover{filter:brightness(1.1)}
+.btn:active{transform:translateY(2px) scale(.99)}
+
+.memberships{max-width:1000px;margin:18px auto;padding:14px}
+
+/* ====== MODAL ====== */
+#overlayPay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.75);
+  z-index:260;
+}
+.modal{
+  background:linear-gradient(180deg,#1a1c1f,#0c0d0f);
+  border-radius:16px;
+  padding:18px;
+  width:94%;
+  max-width:560px;
+  color:#ffffff;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+  border:2px solid rgba(255,255,255,.3);
+}
+.modal h3{color:#ffffff;margin-bottom:10px}
+
+.instruction{
+  background:rgba(255,255,255,.05);
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+  border-left:6px solid #ffffff;
+  color:#e5e7ea;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:12px;
+}
+
+.copyBtn{
+  background:linear-gradient(90deg,#ffffff,#bfc3c7);
+  color:#000;
+  padding:10px 12px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+.copyBtn:active{transform:translateY(2px)}
+
+.ghost{
+  background:transparent;
+  border:2px solid #bfc3c7;
+  color:#bfc3c7;
+  padding:10px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+/* ====== CONFETTI ====== */
+.confetti{position:fixed;z-index:9999;pointer-events:none}
+
+/* ====== FOOTER ====== */
+footer{
+  margin:28px 0 80px;
+  color:#bfc3c7;
+  font-size:.95rem;
+  text-shadow:0 0 10px rgba(255,255,255,.35);
+}
+</style>
+
+<!-- ========= LOADER SECUENCIAL SOLO CELULAR ========= -->
+<style>
+#mobileLoader{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#0e0e0e;
+display:none;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:999999;
+}
+
+/* SPINNER */
+.spinner{
+width:70px;
+height:70px;
+border:6px solid rgba(255,255,255,0.1);
+border-top:6px solid #00ff88;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin-bottom:20px;
+}
+
+/* CHECK DIBUJADO */
+.check{
+display:none;
+width:60px;
+height:60px;
+border-radius:50%;
+border:3px solid #00ff88;
+margin-bottom:20px;
+position:relative;
+}
+
+.check::after{
+content:'';
+position:absolute;
+width:18px;
+height:35px;
+border-right:4px solid #00ff88;
+border-bottom:4px solid #00ff88;
+transform:rotate(45deg);
+top:8px;
+left:20px;
+stroke-dasharray:60;
+stroke-dashoffset:60;
+animation:drawCheck .8s ease forwards;
+}
+
+/* TEXTO */
+.loader-text{
+font-size:1.1rem;
+font-weight:700;
+color:#eaeaea;
+text-align:center;
+max-width:80%;
+opacity:0;
+}
+
+/* TEXTO COMPLETADO */
+.completed{
+color:#00ff88;
+}
+
+/* ANIMACIONES */
+.fade-in{animation:fadeIn .6s ease forwards}
+.fade-out{animation:fadeOut .6s ease forwards}
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes fadeOut{
+from{opacity:1;transform:translateY(0)}
+to{opacity:0;transform:translateY(-10px)}
+}
+
+@keyframes drawCheck{
+from{
+opacity:0;
+transform:rotate(45deg) scale(.5);
+}
+to{
+opacity:1;
+transform:rotate(45deg) scale(1);
+}
+}
+</style>
+
+<div id="mobileLoader">
+    <div class="spinner" id="spinner"></div>
+    <div class="check" id="check"></div>
+    <div class="loader-text" id="loaderText">Cargando...</div>
+</div>
+
+<script>
+if (window.innerWidth <= 768) {
+
+const loader = document.getElementById("mobileLoader");
+const text = document.getElementById("loaderText");
+const spinner = document.getElementById("spinner");
+const check = document.getElementById("check");
+
+loader.style.display = "flex";
+
+const steps = [
+  { msg: "⚠️ ADVERTENCIA ⚠️", time: 2000 },
+  { msg: "Esta página es solo para personas conocidas", time: 2000 },
+  { msg: "alguno/a otra persona Será ignorada.", time: 2000 },
+{ msg: "Debido a la política de privacidad de Github", time: 1000 },
+  { msg: "Completado!", time: 1000, done: true }
+];
+
+let index = 0;
+
+function nextStep(){
+  if(index >= steps.length){
+    loader.classList.add("fade-out");
+    setTimeout(() => loader.remove(), 700);
+    return;
+  }
+
+  const step = steps[index];
+
+  text.className = "loader-text fade-in";
+  text.textContent = step.msg;
+
+  if(step.done){
+    text.classList.add("completed");
+    spinner.style.display = "none";
+    check.style.display = "block";
+  }
+
+  setTimeout(() => {
+    text.classList.remove("fade-in");
+    text.classList.add("fade-out");
+    index++;
+    setTimeout(nextStep, 600);
+  }, step.time);
+}
+
+nextStep();
+}
+</script>
+<!-- ========= FIN LOADER ========= -->
+
+<style>
+:root{
+  --white:#00bfff;      /* ahora azul */
+  --gray:#007bff;       /* azul oscuro */
+  --bg:#050606;         /* negro */
+}
+
+/* ================= BASE ================= */
+body{
+  margin:0;
+  background:var(--bg);
+  color:#00bfff;
+  font-family:Arial, sans-serif;
+}
+
+/* ================= TOP POINTS ================= */
+#topPoints{
+  position:fixed;
+  top:12px;
+  right:12px;
+  background:linear-gradient(135deg,#00bfff,#007bff);
+  color:#000;
+  padding:10px 16px;
+  border-radius:14px;
+  font-weight:900;
+  box-shadow:0 0 18px rgba(0,191,255,.7);
+  z-index:1000;
+}
+
+/* ================= LOGIN ================= */
+#loginScreen{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top,#0a1f33,#000000);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.login-card{
+  width:90%;
+  max-width:380px;
+  background:#050607;
+  border-radius:18px;
+  padding:30px 25px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(0,191,255,.35);
+  border:1px solid rgba(0,191,255,.4);
+}
+
+.login-card h1{
+  margin-bottom:20px;
+  color:#00bfff;
+}
+
+#loginForm{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .6s ease;
+}
+#loginForm.show{ max-height:260px }
+
+.login-card input{
+  width:100%;
+  padding:14px;
+  margin:10px 0;
+  background:#000000;
+  border:1px solid #0a1f33;
+  border-radius:10px;
+  color:#00bfff;
+}
+
+/* BOTÓN PRINCIPAL */
+.btn-main{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  background:linear-gradient(135deg,#00bfff,#007bff);
+  border:none;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+  color:#000;
+  box-shadow:0 0 20px rgba(0,191,255,.6);
+}
+
+#error{ color:#ff4d4d; margin-top:10px }
+
+/* ================= SHOP ================= */
+#shop{
+  display:none;
+  padding:80px 20px;
+}
+
+.card{
+  background:#050607;
+  border:2px solid #00bfff;
+  border-radius:16px;
+  padding:20px;
+  text-align:center;
+  box-shadow:0 0 22px rgba(0,191,255,.35);
+}
+</style>
+</head>
+<body>
+<style>
+/* ====== FIX FINAL: BLANCO → AZUL ====== */
+
+/* Botones que aún salen blancos */
+button{
+  background:linear-gradient(135deg,#00bfff,#007bff) !important;
+  color:#000 !important;
+  box-shadow:0 0 18px rgba(0,191,255,.6) !important;
+}
+
+/* Botones específicos de compra */
+button[class*="comprar"],
+button[class*="stripe"],
+button[class*="whatsapp"]{
+  background:linear-gradient(135deg,#00bfff,#007bff) !important;
+  color:#000 !important;
+}
+
+/* Fondo interno blanco dentro de cards */
+.card{
+  background:linear-gradient(180deg,#050607,#000000) !important;
+  border-color:#00bfff !important;
+}
+
+/* Barra superior que aún se ve clara */
+.top-bar{
+  background:linear-gradient(90deg,#00bfff,#007bff) !important;
+  color:#000 !important;
+}
+
+/* Texto que aún aparece blanco */
+.card h1,
+.card h2,
+.card p,
+.card span{
+  color:#00bfff !important;
+}
+</style>
+
+<!-- ===== POINTS HUD ===== -->
+<div id="topPoints">Points: <span id="robuxValue">0</span></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>Inicia sesión</h1>
+
+    <button class="btn-main" onclick="showLogin()">Iniciar sesión</button>
+
+    <div id="loginForm">
+      <input type="text" id="username" placeholder="Usuario">
+      <input type="password" id="password" placeholder="Contraseña 🔐">
+      <button class="btn-main" onclick="login()">iniciar</button>
+      <p id="error"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= USUARIOS ================= */
+const users = [
+  {user:"Levittochimi56", pass:"levitiñochimino561", points:0},
+  {user:"Jonathan9091", pass:"Jonansa812", points:0},
+  {user:"Brianzmx17", pass:"Brianazx87", points:0},
+  {user:"NicolAZX881", pass:"NICOA192", points:0},
+  {user:"STEV172991", pass:"Stevnc8114", points:0},
+  {user:"Andersxn2012", pass:"ANDERSXN9182", points:559}
+];
+
+let currentUser = null;
+let robuxPoints = 0;
+const MAX_POINTS = 100000;
+
+/* ================= LOGIN ================= */
+function showLogin(){
+  loginForm.classList.add("show");
+}
+
+function login(){
+  const u = username.value.trim();
+  const p = password.value.trim();
+
+  const found = users.find(x => x.user === u && x.pass === p);
+  if(!found){
+    error.textContent = "Usuario o contraseña incorrectos";
+    return;
+  }
+
+  currentUser = found.user;
+  robuxPoints = found.points;
+  updatePoints(robuxPoints);
+
+  loginScreen.style.display = "none";
+  shop.style.display = "block";
+}
+
+/* ================= POINTS ================= */
+function updatePoints(val){
+  val = parseInt(val);
+  if(val > MAX_POINTS) val = MAX_POINTS;
+  if(val < 0) val = 0;
+
+  robuxPoints = val;
+  robuxValue.innerText = robuxPoints;
+}
+
+/* ================= ADMIN ================= */
+/* USO:
+   setRobuxPoints(99999)
+*/
+function setRobuxPoints(amount){
+  updatePoints(amount);
+}
+</script>
+
+<!-- ========= AUTH FX PRO (NO TOCAR) ========= -->
+<style>
+#authOverlay{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top,#0a1a3a,#000);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  backdrop-filter:blur(6px);
+}
+
+.auth-box{
+  text-align:center;
+  color:#9fdcff;
+  font-family:Orbitron,Arial,sans-serif;
+  animation:fadeIn .5s ease;
+}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.hex-loader{
+  width:90px;
+  height:90px;
+  border:4px solid rgba(0,170,255,.15);
+  border-top:4px solid #00aaff;
+  border-radius:50%;
+  animation:spin 1s linear infinite, pulse 1.5s ease-in-out infinite;
+  margin:0 auto 15px;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 10px #00aaff}
+  50%{box-shadow:0 0 25px #00aaff}
+}
+
+#loaderText{
+  font-size:14px;
+  letter-spacing:1px;
+  animation:glitch 1.2s infinite;
+}
+
+@keyframes glitch{
+  0%{opacity:1}
+  20%{opacity:.7}
+  40%{opacity:1}
+  60%{opacity:.5}
+  80%{opacity:1}
+}
+
+#fxIcon{
+  width:110px;
+  height:110px;
+  display:none;
+  margin:20px auto;
+}
+
+#fxPath{
+  fill:none;
+  stroke-width:9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:400;
+  stroke-dashoffset:400;
+  animation:drawFX 1.4s cubic-bezier(.4,0,.2,1) forwards,
+             glow 1.2s ease-in-out infinite;
+}
+
+@keyframes drawFX{to{stroke-dashoffset:0}}
+@keyframes glow{
+  0%,100%{filter:drop-shadow(0 0 5px currentColor)}
+  50%{filter:drop-shadow(0 0 18px currentColor)}
+}
+
+#resultText{
+  font-size:14px;
+  margin-top:10px;
+  opacity:0;
+  animation:textIn .6s ease forwards;
+}
+
+@keyframes textIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+
+<div id="authOverlay">
+  <div class="auth-box">
+    <div class="hex-loader" id="loader"></div>
+    <div id="loaderText">ENCRIPTANDO DATOS…</div>
+
+    <svg id="fxIcon" viewBox="0 0 100 100">
+      <path id="fxPath"></path>
+    </svg>
+
+    <div id="resultText"></div>
+  </div>
+</div>
+
+<script>
+function startFX(){
+  authOverlay.style.display="flex";
+  loader.style.display="block";
+  loaderText.style.display="block";
+  fxIcon.style.display="none";
+  resultText.textContent="";
+}
+
+function errorFX(){
+  loader.style.display="none";
+  loaderText.style.display="none";
+  fxIcon.style.display="block";
+
+  fxPath.setAttribute("d","M25 25 L75 75 M75 25 L25 75");
+  fxPath.style.color="red";
+  fxPath.style.stroke="red";
+
+  resultText.textContent="Contraseña Incorrecta, Datos no correspondientes.";
+  resultText.style.color="red";
+
+  setTimeout(()=>authOverlay.style.display="none",3000);
+}
+
+function successFX(){
+  loader.style.display="none";
+  loaderText.style.display="none";
+  fxIcon.style.display="block";
+
+  fxPath.setAttribute("d","M20 55 L45 75 L80 30");
+  fxPath.style.color="#00ff9c";
+  fxPath.style.stroke="#00ff9c";
+
+  resultText.textContent="Datos Encriptados";
+  resultText.style.color="#00ff9c";
+}
+
+/* ===== LOGIN (MISMA FUNCIÓN, FX PRO) ===== */
+function login(){
+  const u = username.value.trim();
+  const p = password.value.trim();
+
+  startFX();
+
+  setTimeout(()=>{
+    const ok = users.find(x=>x.user===u && x.pass===p);
+
+    if(!ok){
+      errorFX();
+      return;
+    }
+
+    successFX();
+
+    setTimeout(()=>{
+      currentUser = ok.user;
+      robuxPoints = ok.points;
+      updatePoints(robuxPoints);
+
+      authOverlay.style.display="none";
+      loginScreen.style.display="none";
+      shop.style.display="block";
+    },1500);
+
+  },1500);
+}
+</script>
+
+<!-- BOTÓN FLOTANTE -->
+<div class="cart-float" onclick="toggleCarrito()">
+  🛒 <span id="cartCount">0</span>
+</div>
+
+<!-- OVERLAY CARGANDO -->
+<div class="overlay" id="overlay">
+  <div class="loader"></div>
+  <p>Procesando pedido...</p>
+</div>
+
+<!-- PANEL CARRITO -->
+<div class="cart-panel" id="cartPanel">
+  <h3>🛒 CARRITO</h3>
+
+  <div id="cartItems"></div>
+
+  <div class="cart-footer">
+    <strong>Total: <span id="cartTotal">$0.00</span></strong>
+    <button class="cart-btn" onclick="hacerPedido()">Hacer el pedido</button>
+  </div>
+</div>
+
+<style>
+.cart-float{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:#00e5ff;
+  padding:12px 16px;
+  border-radius:50px;
+  font-weight:700;
+  cursor:pointer;
+  z-index:9999;
+}
+
+.cart-panel{
+  position:fixed;
+  bottom:80px;
+  left:20px;
+  width:300px;
+  background:#0f172a;
+  color:#fff;
+  padding:14px;
+  border-radius:16px;
+  display:none;
+  z-index:9999;
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:8px 0;
+}
+
+.cart-item small{ opacity:.8; }
+
+.remove{
+  cursor:pointer;
+  color:red;
+  margin-right:6px;
+  font-weight:700;
+}
+
+.cart-btn{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#00e5ff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:10000;
+  color:white;
+}
+
+.loader{
+  width:40px;
+  height:40px;
+  border:4px solid #00e5ff;
+  border-top:4px solid transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+</style>
+
+<script>
+const cartPanel = document.getElementById("cartPanel");
+const cartItems = document.getElementById("cartItems");
+const cartTotal = document.getElementById("cartTotal");
+const cartCount = document.getElementById("cartCount");
+const overlay = document.getElementById("overlay");
+
+let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+function toggleCarrito(){
+  cartPanel.style.display =
+    cartPanel.style.display === "block" ? "none" : "block";
+}
+
+// 👉 USA ESTA FUNCIÓN DESDE TUS BOTONES "ADD 🛒"
+function agregarAlCarrito(nombre, precio){
+  let item = carrito.find(p => p.nombre === nombre);
+
+  if(item){
+    if(item.cantidad < 10) item.cantidad++;
+  } else {
+    carrito.push({ nombre, precio, cantidad: 1 });
+  }
+  guardar();
+}
+
+function quitarUno(nombre){
+  let item = carrito.find(p => p.nombre === nombre);
+  if(!item) return;
+
+  item.cantidad--;
+  if(item.cantidad <= 0){
+    carrito = carrito.filter(p => p.nombre !== nombre);
+  }
+  guardar();
+}
+
+function guardar(){
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  render();
+}
+
+function render(){
+  cartItems.innerHTML = "";
+  let total = 0;
+  let count = 0;
+
+  carrito.forEach(p => {
+    let sub = p.precio * p.cantidad;
+    total += sub;
+    count += p.cantidad;
+
+    cartItems.innerHTML += `
+      <div class="cart-item">
+        <div>
+          <span class="remove" onclick="quitarUno('${p.nombre}')">✖</span>
+          ${p.nombre} <small>x${p.cantidad}</small>
+        </div>
+        $${sub.toFixed(2)}
+      </div>
+    `;
+  });
+
+  cartTotal.textContent = "$" + total.toFixed(2);
+  cartCount.textContent = count;
+}
+
+function hacerPedido(){
+  if(carrito.length === 0) return;
+
+  overlay.style.display = "flex";
+
+  setTimeout(() => {
+    let msg = "🛒 *PEDIDO*%0A%0A";
+    let total = 0;
+
+    carrito.forEach(p => {
+      let sub = p.precio * p.cantidad;
+      total += sub;
+      msg += `• ${p.nombre} [×${p.cantidad}] ($${p.precio}) = $${sub.toFixed(2)}%0A`;
+    });
+
+    msg += `%0ATOTAL: $${total.toFixed(2)}`;
+
+    carrito = [];
+    guardar();
+    overlay.style.display = "none";
+
+    window.open(
+      `https://wa.me/50373826693?text=${msg}`,
+      "_blank"
+    );
+  }, 3000);
+}
+
+render();
+</script>
+
+<!-- ====== CUADRO RANKING ====== -->
+<div class="install-box Ranking-box">
+  <div class="Strike Blocks for Android">
+    <span>Mini juegos</span>
+  </div>
+  <button onclick="openBuy()">Ver información</button>
+</div>
+
+<!-- ====== OVERLAY INFO ====== -->
+<div class="overlay" id="buyBox">
+  <div class="buy-card">
+
+    <h2>Mini juegos × Gana robux</h2>
+
+    <p class="desc" style="text-align:left;">
+      • <b>¿Que ganas con jugar?</b><br>
+      Recompensas De videojuegos!<br><br>
+
+      • <b>¿Si tienes puntos Rblx que hacer? </b><br><br>
+
+      • <b>¿Cómo puedo ver cuántos puntos Rblx tengo</b><br>
+      R/ abajo en un recuadro tipo B, burbuja 
+      <b>indica: Puntos Rblx</b>.<br>
+      Estos puede variar según vaya ganando Rblx puntos de<b>1</b> hasta el <b>99,999</b>.
+    </p>
+
+    <p style="font-weight:bold;color:#c89b3c;">Quieres saber cuántos puntos × recompensa: 
+
+| 899 puntos Rblx = 40 Robux Gratis
+| 1,899 puntos Rblx = 80 Robux Gratis 
+| 2,999 puntos Rblx = 120 robux gratis 
+
+</p>
+
+    <button class="buy-btn" onclick="inspectRanking()">
+      JUGAR JUEGOS BY: SOFT CORPORATIÓN 
+    </button>
+
+    <button class="close-btn" onclick="closeBuy()">Cerrar</button>
+  </div>
+</div>
+
+<!-- ====== OVERLAY CARGANDO ====== -->
+<div class="overlay" id="loadingBox">
+  <div class="buy-card">
+    <div class="loader"></div>
+    <p style="margin-top:15px;font-weight:bold;">Cargando...</p>
+  </div>
+</div>
+
+<style>
+/* ====== CAJA RANKING ====== */
+.install-box{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:linear-gradient(135deg,#0b1a2a,#132b44);
+  border:2px solid #0aa8ff;
+  border-radius:14px;
+  padding:12px 18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  animation:slideUp .8s ease forwards;
+  box-shadow:0 0 25px rgba(10,168,255,.45);
+  z-index:999;
+}
+
+@keyframes slideUp{
+  to{ transform:translateX(-50%) translateY(0); }
+}
+
+.Ranking span{
+  font-size:16px;
+  font-weight:bold;
+  color:#f5c76a;
+}
+
+.install-box button{
+  background:linear-gradient(135deg,#0aa8ff,#057fd1);
+  color:#0b1a2a;
+  border:none;
+  padding:8px 14px;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* ====== OVERLAYS ====== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+
+.buy-card{
+  background:linear-gradient(160deg,#f0f0f0,#d9d9d9);
+  border:2px solid #0aa8ff;
+  border-radius:18px;
+  padding:22px;
+  width:90%;
+  max-width:420px;
+  text-align:center;
+  animation:pop .4s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(.8); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
+
+.buy-card h2{
+  color:#c89b3c;
+  margin-bottom:10px;
+}
+
+.desc{
+  font-size:13px;
+  color:#2f2f2f;
+  line-height:1.4;
+  margin-bottom:16px;
+}
+
+.buy-btn{
+  background:linear-gradient(135deg,#0aa8ff,#057fd1);
+  color:#0b1a2a;
+  border:none;
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  font-weight:bold;
+  font-size:15px;
+  cursor:pointer;
+  margin-bottom:8px;
+}
+
+.close-btn{
+  background:none;
+  color:#6a6a6a;
+  border:none;
+  cursor:pointer;
+}
+
+/* ====== LOADER ====== */
+.loader{
+  width:50px;
+  height:50px;
+  border:5px solid #ccc;
+  border-top:5px solid #0aa8ff;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+#loadingBox p{
+  color:#f5c76a;
+}
+</style>
+
+<script>
+function openBuy(){
+  document.getElementById("buyBox").style.display="flex";
+}
+
+function closeBuy(){
+  document.getElementById("buyBox").style.display="none";
+}
+
+function inspectRanking(){
+  document.getElementById("buyBox").style.display="none";
+  document.getElementById("loadingBox").style.display="flex";
+
+  setTimeout(()=>{
+    window.location.href =
+    "https://soft-technology-studios-llc.github.io/Strike-Blocks-For-Android/";
+  },3000);
+}
+
+/* ====== FIX OVERLAY PEGADO AL REGRESAR ====== */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    const buyBox = document.getElementById("buyBox");
+    const loadingBox = document.getElementById("loadingBox");
+
+    if (buyBox) buyBox.style.display = "none";
+    if (loadingBox) loadingBox.style.display = "none";
+  }
+});
+</script>
+
+<div class="top-bar" role="banner">
+  <div>🔥 <strong>Nueva interfaz de compra!</strong></div>
+  <div id="serverCount" aria-live="polite">Soft Games</div>
+</div><header>
+<h1>Robux</h1>
+<h2>Versión 1.3</h2>
+<p class="small">⏣</p>
+</header><main class="container" id="paquetes">
+<h5>Paquetes normales</h5>
+<!-- Paquetes Robux -->
+
+<!-- PRODUCTO -->
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('40 robux', 0.49)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 40 robux</div>
+
+  <div class="price-row">
+    <div class="price">$0.49</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2040%20robux%20por%20$0.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2040%20robux%20por%20Stripe','_blank')">
+    Comprar por Stripe |×|
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+/* CARD */
+.card{
+  position: relative;
+  width: 260px;
+  padding: 16px;
+  background: #0f172a;
+  color: #fff;
+  border-radius: 14px;
+  box-shadow: 0 0 14px rgba(0,0,0,.45);
+  margin-bottom: 20px;
+}
+
+/* BOTÓN ADD */
+.btn-add{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 48px;
+  height: 48px;
+  background: #00e5ff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(0,229,255,.6);
+}
+.btn-add:hover{ transform: scale(1.1); }
+
+/* OTROS */
+.robux-title{ font-weight: 700; margin-bottom: 8px; }
+.price-row{ display:flex; align-items:center; gap:8px; }
+.price{ font-size: 18px; font-weight: 700; }
+.btn{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+.small{ margin-top:8px; opacity:.8; }
+.carrito{ margin-top:16px; font-weight:700; }
+</style>
+
+<script>
+let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+function agregarAlCarrito(nombre, precio){
+  carrito.push({nombre, precio});
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+  actualizarTotal();
+}
+
+function actualizarTotal(){
+  let total = carrito.reduce((s,p)=>s+p.precio,0);
+  document.getElementById('total').textContent = '$' + total.toFixed(2);
+}
+
+actualizarTotal();
+</script>
+
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('80 robux', 1.75)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 80 robux</div>
+
+  <div class="price-row">
+    <div class="price">$1.75</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2080%20robux%20por%20$1.75','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('400 robux', 7.24)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 400 robux</div>
+
+  <div class="price-row">
+    <div class="price">$7.24</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20400%20robux%20por%20$7.24','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_cNi9AVc9P5bC6YBcVq1gs02','_blank')">
+    Comprar por Stripe!
+  </button>
+
+  <div class="small">-5% descuento</div>
+</div>
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('800 robux', 12.99)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 800 robux</div>
+
+  <div class="price-row">
+    <div class="price">$12.99</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20800%20robux%20por%20$12.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_00wfZj2zfcE482F6x21gs03','_blank')">
+    Comprar por Stripe!
+  </button>
+
+  <div class="small">-5% descuento</div>
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('1,000 robux', 15.99)">
+    ADD<br>🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 1,000 robux</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$15.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201,000%20robux%20por%20$15.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_cNi9AVc9P5bC6YBcVq1gs02','_blank')">
+    Comprar por Stripe!
+  </button>
+
+  <!-- TEXTO PEQUEÑO -->
+  <div class="small">-5% descuento</div>
+
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('2000 robux', 24.99)">
+    ADD<br>🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 2000 robux</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$24.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%202000%20robux%20por%20$24.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_REEMPLAZA_AQUI','_blank')">
+    Comprar por Stripe!
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">DISPONIBLE CON DN7</div>
+
+</div>
+
+<h1>Paquetes Especiales ⭐✨</h1>
+
+<h8>Ilimitadamente</h8>
+<h9>paquetes Ilimitados!</h9>
+
+<!-- Paquetes Robux -->
+<div class="card">
+
+  <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
+  <button class="btn-add" style="
+    width:40px;
+height:40px;
+font-size:10px;
+border-radius:8px;
+  " onclick="agregarAlCarrito('BUNDLE #1', 12.49)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 400 robux + Alfombra × Steal a Brainrot</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$12.49</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20bundle%20especial:%20400%20robux%20+%20Alfombra%20×%20Steal%20a%20Brainrot%20por%20$12.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20ver%20paquetes%20especiales','_blank')">
+    Paquetes Especiales solo por WhatsApp
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">-5% descuento</div>
+
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
+  <button class="btn-add" style="
+    width:40px;
+height:40px;
+font-size:10px;
+border-radius:8px;
+  " onclick="agregarAlCarrito('BUNDLE #2', 18.99)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 800 robux + Alfombra × Steal a Brainrot</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$18.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20el%20bundle%20especial:%20800%20Robux%20+%20Alfombra%20×%20STB%20por%20$18.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20ver%20paquetes%20especiales','_blank')">
+    Paquetes Especiales solo por WhatsApp
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">-5% descuento</div>
+
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
+  <button class="btn-add" style="
+    width:40px;
+height:40px;
+font-size:10px;
+border-radius:8px;
+  " onclick="agregarAlCarrito('BUNDLE #3', 69.99)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 1000 robux + comandos de administrador × Steal a Brainrot</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$69.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20bundle%20especial:%201,000%20robux%20+%20comandos%20de%20administrador%20×%20Steal%20a%20Brainrot%20por%20$69.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20ver%20paquetes%20especiales','_blank')">
+    Paquetes Especiales solo por WhatsApp
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">Paquete PREMIUM</div>
+
+</div>
+
+<div class="card">
+
+  <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
+  <button class="btn-add" style="
+    width:40px;
+height:40px;
+font-size:10px;
+border-radius:8px;
+  " onclick="agregarAlCarrito('BUNDLE #4', 36.49)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">⏣ 2K robux + Lucky secret</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$36.49</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20bundle%20especial:%202,000%20robux%20+%20Láser%20Gun%20×%20Steal%20a%20Brainrot%20por%20$36.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20ver%20paquetes%20especiales','_blank')">
+    Paquetes Especiales solo por WhatsApp
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">DISPONIBLE CON V.I.P!</div>
+
+</div>
+
+<!-- Membresías -->
+<section class="memberships" aria-labelledby="membersTitle">
+  <h3 id="membersTitle" style="color:#ffdca8;margin-bottom:10px">Membresías de bonificación de robux!</h3>
+  <div class="container" style="gap:12px;">
+  
+    <div class="card membership">
+
+  <!-- BOTÓN ADD (más pequeño, carrito) -->
+  <button class="btn-add" style="
+    width:40px;
+height:40px;
+font-size:10px;
+border-radius:8px;
+  " onclick="agregarAlCarrito('Membresía 4 días (+25% robux)', 1.99)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">Membresía 4 días — +25% robux</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$1.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Hola,%20quiero%20comprar%20Membresía%204%20días%20+25%25','_blank')">
+    WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://www.paypal.com/ncp/payment/MF96TPN6YAADY','_blank')">
+    PayPal $1.99
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">Extra robux en paquetes</div>
+
+</div>
+
+    
+    <div class="card membership">
+
+  <!-- BOTÓN ADD (mini) -->
+  <button class="btn-add" style="
+    width:40px;
+    height:40px;
+    font-size:10px;
+    line-height:1.1;
+    border-radius:8px;
+  " onclick="agregarAlCarrito('Membresía 8 días (+25% robux)', 2.99)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">Membresía 8 días — +25% robux</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$2.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Hola,%20quiero%20comprar%20Membresía%208%20días%20+25%25','_blank')">
+    WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://www.paypal.com/ncp/payment/6GPE2QLFQ7WYS','_blank')">
+    PayPal $2.99
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">Extra robux en paquetes</div>
+
+</div>
+
+    
+<div class="card membership">
+
+  <!-- BOTÓN ADD (mini) -->
+  <button class="btn-add" style="
+    width:40px;
+    height:40px;
+    font-size:10px;
+    line-height:1.1;
+    border-radius:8px;
+  " onclick="agregarAlCarrito('Membresía 15 días (+25% robux)', 4.99)">
+    ADD 🛒
+  </button>
+
+  <!-- TÍTULO -->
+  <div class="robux-title">Membresía 15 días — +25% robux</div>
+
+  <!-- PRECIO -->
+  <div class="price-row">
+    <div class="price">$4.99</div>
+  </div>
+
+  <!-- BOTONES -->
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Hola,%20quiero%20comprar%20Membresía%2015%20días%20+25%25','_blank')">
+    WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://www.paypal.com/ncp/payment/2RXSZ55D3FUVN','_blank')">
+    PayPal $4.99
+  </button>
+
+  <!-- TEXTO FINAL -->
+  <div class="small">Extra robux en paquetes!</div>
+
+</div>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recargas Free Fire</title>
+
+<style>
+body{
+  margin:0;
+  font-family:'Segoe UI',sans-serif;
+  background:#0b0c1b;
+  color:white;
+}
+
+.ff-shop{
+  max-width:1100px;
+  margin:40px auto;
+  padding:20px;
+}
+
+.ff-title{
+  text-align:center;
+  font-size:2.2rem;
+  color:#00fff0;
+  margin-bottom:10px;
+  text-shadow:0 0 10px #00fff0;
+}
+
+.ff-subtitle{
+  text-align:center;
+  margin-bottom:30px;
+  color:#ccc;
+}
+
+.packages{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+}
+
+.package{
+  position:relative;
+  background:linear-gradient(135deg,#14163c,#0b0c1b);
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 0 15px rgba(0,255,240,0.25);
+  text-align:center;
+}
+
+.package h3{
+  margin-bottom:10px;
+}
+
+.package p{
+  color:#00fff0;
+  font-size:1.3rem;
+  margin-bottom:15px;
+}
+
+.buy-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#00fff0;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* ADD 🛒 MINI */
+.add-btn{
+  position:absolute;
+  top:50%;                 /* centro vertical */
+  left:10px;               /* lado izquierdo */
+  transform:translateY(-50%);
+  width:34px;              /* un poquito más pequeño */
+  height:34px;
+  font-size:9px;
+  border-radius:7px;
+  background:#00fff0;
+  color:#000;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+  line-height:1.1;
+}
+
+/* MODAL */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content{
+  background:#14163c;
+  padding:25px;
+  border-radius:12px;
+  width:90%;
+  max-width:340px;
+  text-align:center;
+}
+
+.modal-content h2{
+  color:#00fff0;
+  margin-bottom:15px;
+}
+
+.modal-content input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  text-align:center;
+  font-size:1rem;
+  margin-bottom:15px;
+}
+
+.confirm-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#00fff0;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.close-btn{
+  margin-top:10px;
+  background:none;
+  border:none;
+  color:#aaa;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<section class="ff-shop">
+  <div class="ff-title">Recargas de Free Fire × Jujutsu Kaisen!</div>
+  <div class="ff-subtitle">Deberás poner tu ID!</div>
+
+  <div class="packages">
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('100 Diamantes Free Fire',1.75)">ADD<br>🛒</button>
+      <h3>💎 100 Diamantes</h3><p>$1.75</p>
+      <button class="buy-btn" onclick="abrirModal('100 Diamantes','$1.75')">Comprar</button>
+    </div>
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('200 Diamantes Free Fire',3.24)">ADD<br>🛒</button>
+      <h3>💎 200 Diamantes</h3><p>$3.24</p>
+      <button class="buy-btn" onclick="abrirModal('200 Diamantes','$3.24')">Comprar</button>
+    </div>
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('300 Diamantes Free Fire',4.49)">ADD<br>🛒</button>
+      <h3>💎 300 Diamantes</h3><p>$4.49</p>
+      <button class="buy-btn" onclick="abrirModal('300 Diamantes','$4.49')">Comprar</button>
+    </div>
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('400 Diamantes Free Fire',5.99)">ADD<br>🛒</button>
+      <h3>💎 400 Diamantes</h3><p>$5.99</p>
+      <button class="buy-btn" onclick="abrirModal('400 Diamantes','$5.99')">Comprar</button>
+    </div>
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('500 Diamantes Free Fire',6.99)">ADD<br>🛒</button>
+      <h3>💎 500 Diamantes</h3><p>$6.99</p>
+      <button class="buy-btn" onclick="abrirModal('500 Diamantes','$6.99')">Comprar</button>
+    </div>
+
+    <div class="package">
+      <button class="add-btn" onclick="agregarAlCarrito('600 Diamantes Free Fire',7.99)">ADD<br>🛒</button>
+      <h3>💎 600 Diamantes</h3><p>$7.99</p>
+      <button class="buy-btn" onclick="abrirModal('600 Diamantes','$7.99')">Comprar</button>
+    </div>
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('700 Diamantes Free Fire',9.49)">ADD<br>🛒</button>
+  <h3>💎 700 Diamantes</h3>
+  <p>$9.49</p>
+  <button class="buy-btn" onclick="abrirModal('700 Diamantes','$9.49')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('800 Diamantes Free Fire',10.49)">ADD<br>🛒</button>
+  <h3>💎 800 Diamantes</h3>
+  <p>$10.49</p>
+  <button class="buy-btn" onclick="abrirModal('800 Diamantes','$10.49')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('900 Diamantes Free Fire',11.24)">ADD<br>🛒</button>
+  <h3>💎 900 Diamantes</h3>
+  <p>$11.24</p>
+  <button class="buy-btn" onclick="abrirModal('900 Diamantes','$11.24')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,060 Diamantes Free Fire',12.49)">ADD<br>🛒</button>
+  <h3>💎 1,060 Diamantes</h3>
+  <p>$12.49</p>
+  <button class="buy-btn" onclick="abrirModal('1,060 Diamantes','$12.49')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,100 Diamantes Free Fire',13.24)">ADD<br>🛒</button>
+  <h3>💎 1,100 Diamantes</h3>
+  <p>$13.24</p>
+  <button class="buy-btn" onclick="abrirModal('1,100 Diamantes','$13.24')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,200 Diamantes Free Fire',14.24)">ADD<br>🛒</button>
+  <h3>💎 1,200 Diamantes</h3>
+  <p>$14.24</p>
+  <button class="buy-btn" onclick="abrirModal('1,200 Diamantes','$14.24')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,300 Diamantes Free Fire',15.99)">ADD<br>🛒</button>
+  <h3>💎 1,300 Diamantes</h3>
+  <p>$15.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,300 Diamantes','$15.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,400 Diamantes Free Fire',15.99)">ADD<br>🛒</button>
+  <h3>💎 1,400 Diamantes</h3>
+  <p>$15.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,400 Diamantes','$15.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,500 Diamantes Free Fire',16.99)">ADD<br>🛒</button>
+  <h3>💎 1,500 Diamantes</h3>
+  <p>$16.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,500 Diamantes','$16.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,600 Diamantes Free Fire',17.99)">ADD<br>🛒</button>
+  <h3>💎 1,600 Diamantes</h3>
+  <p>$17.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,600 Diamantes','$17.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,700 Diamantes Free Fire',18.99)">ADD<br>🛒</button>
+  <h3>💎 1,700 Diamantes</h3>
+  <p>$18.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,700 Diamantes','$18.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,800 Diamantes Free Fire',19.99)">ADD<br>🛒</button>
+  <h3>💎 1,800 Diamantes</h3>
+  <p>$19.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,800 Diamantes','$19.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('1,900 Diamantes Free Fire',20.99)">ADD<br>🛒</button>
+  <h3>💎 1,900 Diamantes</h3>
+  <p>$20.99</p>
+  <button class="buy-btn" onclick="abrirModal('1,900 Diamantes','$20.99')">Comprar</button>
+</div>
+
+<div class="package">
+  <button class="add-btn" onclick="agregarAlCarrito('2,180 Diamantes Free Fire',22.99)">ADD<br>🛒</button>
+  <h3>💎 2,180 Diamantes</h3>
+  <p>$22.99</p>
+  <button class="buy-btn" onclick="abrirModal('2,180 Diamantes','$22.99')">Comprar</button>
+</div>
+
+    <!-- EL RESTO SIGUE EXACTAMENTE IGUAL, SOLO CAMBIA NOMBRE Y PRECIO -->
+
+  </div>
+</section>
+
+<!-- MODAL ID -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h2>Ingresa tu ID</h2>
+    <input id="playerId" placeholder="Tu ID (solo números)">
+    <button class="confirm-btn" onclick="enviarWhatsApp()">Enviar a WhatsApp</button>
+    <button class="close-btn" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+let paquete="", precio="";
+
+function abrirModal(p, pr){
+  paquete=p;
+  precio=pr;
+  document.getElementById("playerId").value="";
+  document.getElementById("modal").style.display="flex";
+}
+
+function cerrarModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+function enviarWhatsApp(){
+  const id=document.getElementById("playerId").value.trim();
+  if(id===""||!/^[0-9]+$/.test(id)){
+    alert("Ingresa un ID válido (solo números)");
+    return;
+  }
+  const numero="50373826693";
+  const mensaje=`${id} quiero comprar ${paquete} por ${precio}`;
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`,"_blank");
+  cerrarModal();
+}
+</script>
+
+</body>
+</html>
+
+</section>
+</section><footer>© 2025 New Brothers Studios LLC — Paypal Company ®</footer>
+</body>
+</html>
