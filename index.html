@@ -109,7 +109,7 @@
 </head>
 <body>
 
-<div class="token-bar">Tokens: <span id="tk-val">0</span></div>
+<div class="token-bar">TOKENS: <span id="tk-val">0</span></div>
 
 <div id="btn-wheel" class="bubble" onclick="openWheel()">🎡</div>
 <div id="btn-key" class="bubble" onclick="openKey()">🔐</div>
@@ -117,14 +117,35 @@
 <div id="overlay">
     <div id="container">
         <div onclick="openWheel()" style="color:red; cursor:pointer; font-weight:bold; font-size:12px; margin-bottom: 10px;">[ CERRAR ]</div>
-       
+        
         <div id="arrow-indicator"></div>
+
 
        
         <canvas id="canvas" width="500" height="500"></canvas>
         
         <div id="status-msg" style="margin-top:15px; color:var(--neon-blue); font-size:14px; font-weight:bold; height:20px;"></div>
 
+
+
+<h1 class="ruleta-texto">Ruleta Nerfeada 40%</h1>
+
+<style>
+.ruleta-texto {
+    font-size: 18px; /* letra pequeña */
+    font-weight: 600;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    
+    /* degradado azulado-negruzco */
+    background: linear-gradient(90deg, #0a0f1f, #0d2a5c, #000814);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* mejora visual */
+    text-shadow: 0 0 6px rgba(0, 80, 255, 0.3);
+    letter-spacing: 1px;
+}
+</style>
         
         <button class="spin-btn" onclick="startSpin()">GIRAR ×2 TOKENS</button>
 
@@ -133,7 +154,7 @@
 </div>
 
 <script>
-    const KEY_SISTEMA = "VERSION_Móvil_FLECHA_V2";
+    const KEY_SISTEMA = "VERSION_Móvil_FLECHA_V1";
     const WHATSAPP = "50373826693";
     let rotation = 0;
     let isSpinning = false;
@@ -243,11 +264,13 @@
     }, 5000);
 }
 
+
     function openWheel() {
         let o = document.getElementById("overlay");
         o.style.display = (o.style.display == "flex") ? "none" : "flex";
     }
 </script>
+
 
 <style>
 /* ====== Base y Reset ====== */
@@ -574,7 +597,7 @@ const steps = [
   { msg: "Esta página es solo para personas conocidas", time: 2000 },
   { msg: "alguno/a otra persona Será ignorada.", time: 2000 },
 { msg: "Debido a la política de privacidad de Github", time: 1000 },
-  { msg: "New Brothers Studios!", time: 1000, done: true }
+  { msg: "Completado!", time: 1000, done: true }
 ];
 
 let index = 0;
@@ -609,6 +632,7 @@ nextStep();
 }
 </script>
 <!-- ========= FIN LOADER ========= -->
+
 
 <style>
 :root{
@@ -755,6 +779,7 @@ button[class*="whatsapp"]{
 }
 </style>
 
+
 <!-- ===== POINTS HUD ===== -->
 <div id="topPoints">Points: <span id="robuxValue">0</span></div>
 
@@ -773,6 +798,7 @@ button[class*="whatsapp"]{
     </div>
   </div>
 </div>
+
 
 <script>
 /* ================= USUARIOS ================= */
@@ -1001,6 +1027,7 @@ function login(){
 }
 </script>
 
+
 <!-- BOTÓN FLOTANTE -->
 <div class="cart-float" onclick="toggleCarrito()">
   🛒 <span id="cartCount">0</span>
@@ -1201,6 +1228,7 @@ function hacerPedido(){
 render();
 </script>
 
+
 <!-- ====== CUADRO RANKING ====== -->
 <div class="install-box Ranking-box">
   <div class="Strike Blocks for Android">
@@ -1219,7 +1247,7 @@ render();
       • <b>¿Que ganas con jugar?</b><br>
       Recompensas De videojuegos!<br><br>
 
-      • <b>¿Si tienes puntos Rblx que hacer? </b><br><br>
+      • <b>ADVERTENCIA ⚠️: estos puntos tienen límite de expiración de 5 días, además de obtener las recompensas esperar hasta 14 días</b><br><br>
 
       • <b>¿Cómo puedo ver cuántos puntos Rblx tengo</b><br>
       R/ abajo en un recuadro tipo B, burbuja 
@@ -1236,7 +1264,7 @@ render();
 </p>
 
     <button class="buy-btn" onclick="inspectRanking()">
-      JUGAR JUEGOS BY: New Brothers Studios 
+      JUGAR JUEGOS BY: SOFT CORPORATIÓN 
     </button>
 
     <button class="close-btn" onclick="closeBuy()">Cerrar</button>
@@ -1401,11 +1429,11 @@ document.addEventListener("visibilitychange", () => {
 </script>
 
 <div class="top-bar" role="banner">
-  <div>🔥 <strong>MEGA DESCUENTOS </strong></div>
-  <div id="serverCount" aria-live="polite">New Brothers Studios LLC</div>
+  <div>🔥 <strong>Nueva interfaz de compra!</strong></div>
+  <div id="serverCount" aria-live="polite">Soft Games</div>
 </div><header>
 <h1>Robux</h1>
-<h2>Versión 1.8</h2>
+<h2>Versión 1.3</h2>
 <p class="small">⏣</p>
 </header><main class="container" id="paquetes">
 <h5>Paquetes normales</h5>
@@ -1436,6 +1464,7 @@ document.addEventListener("visibilitychange", () => {
 
   <div class="small">-3% descuento</div>
 </div>
+
 
 <style>
 /* CARD */
@@ -1532,21 +1561,390 @@ actualizarTotal();
   <div class="small">-3% descuento</div>
 </div>
 
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('160 robux', 3.25)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 160 robux</div>
+
+  <div class="price-row">
+    <div class="price">$3.25</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20160%20robux%20por%20$3.25','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('200 robux', 3.75)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 200 robux</div>
+
+  <div class="price-row">
+    <div class="price">$3.75</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20200%20robux%20por%20$3.75','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('240 robux', 4.49)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 240 robux</div>
+
+  <div class="price-row">
+    <div class="price">$4.49</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20240%20robux%20por%20$4.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+</style>
+
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('280 robux', 4.75)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 280 robux</div>
+
+  <div class="price-row">
+    <div class="price">$4.75</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20280%20robux%20por%20$4.75','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('320 robux', 5.25)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 320 robux</div>
+
+  <div class="price-row">
+    <div class="price">$5.25</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20320%20robux%20por%20$5.25','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('360 robux', 5.49)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 360 robux</div>
+
+  <div class="price-row">
+    <div class="price">$5.49</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20360%20robux%20por%20$5.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
 <div class="card">
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('400 robux', 7.24)">
+  <button class="btn-add" onclick="agregarAlCarrito('400 robux', 6.99)">
     ADD<br>🛒
   </button>
 
   <div class="robux-title">⏣ 400 robux</div>
 
   <div class="price-row">
-    <div class="price">$5.99</div>
+    <div class="price">$6.99</div>
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20400%20robux%20por%20$5.99','_blank')">
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20400%20robux%20por%20$7.24','_blank')">
     Comprar WhatsApp
   </button>
 
@@ -1556,21 +1954,310 @@ actualizarTotal();
 
   <div class="small">-5% descuento</div>
 </div>
+
 <div class="card">
 
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('800 robux', 11.99)">
+  <button class="btn-add" onclick="agregarAlCarrito('480 robux', 7.25)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 480 robux</div>
+
+  <div class="price-row">
+    <div class="price">$7.25</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20480%20robux%20por%20$7.25','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('500 robux', 7.99)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 500 robux</div>
+
+  <div class="price-row">
+    <div class="price">$7.99</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20500%20robux%20por%20$7.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('580 robux', 8.49)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 580 robux</div>
+
+  <div class="price-row">
+    <div class="price">$8.49</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20580%20robux%20por%20$8.49','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('660 robux', 9.25)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 660 robux</div>
+
+  <div class="price-row">
+    <div class="price">$9.25</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20660%20robux%20por%20$9.25','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('740 robux', 10.99)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 740 robux</div>
+
+  <div class="price-row">
+    <div class="price">$10.99</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20740%20robux%20por%20$10.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+<div class="card">
+
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('800 robux', 12.99)">
     ADD<br>🛒
   </button>
 
   <div class="robux-title">⏣ 800 robux</div>
 
   <div class="price-row">
-    <div class="price">$11.99</div>
+    <div class="price">$12.99</div>
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20800%20robux%20por%20$11.99','_blank')">
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20800%20robux%20por%20$12.99','_blank')">
     Comprar WhatsApp
   </button>
 
@@ -1581,10 +2268,69 @@ actualizarTotal();
   <div class="small">-5% descuento</div>
 </div>
 
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('920 robux', 12.75)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 920 robux</div>
+
+  <div class="price-row">
+    <div class="price">$12.75</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20920%20robux%20por%20$12.75','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
+
 <div class="card">
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('1,000 robux', 13.49)">
+  <button class="btn-add" onclick="agregarAlCarrito('1,000 robux', 14.49 🔺)">
     ADD<br>🛒
   </button>
 
@@ -1593,11 +2339,11 @@ actualizarTotal();
 
   <!-- PRECIO -->
   <div class="price-row">
-    <div class="price">$13.49</div>
+    <div class="price">$14.49 🔺</div>
   </div>
 
   <!-- BOTONES -->
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201,000%20robux%20por%20$13.49','_blank')">
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201,000%20robux%20por%20$14.49','_blank')">
     Comprar WhatsApp
   </button>
 
@@ -1610,10 +2356,69 @@ actualizarTotal();
 
 </div>
 
+
+
+<div class="card">
+
+  <!-- ETIQUETA NEW -->
+  <div class="badge-new">NEW</div>
+
+  <!-- BOTÓN ADD -->
+  <button class="btn-add" onclick="agregarAlCarrito('1,700 robux',  22.99)">
+    ADD<br>🛒
+  </button>
+
+  <div class="robux-title">⏣ 1,700 robux</div>
+
+  <div class="price-row">
+    <div class="price">$22.99</div>
+    <div class="price-bar"></div>
+  </div>
+
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201700%20robux%20por%20$22.99','_blank')">
+    Comprar WhatsApp
+  </button>
+
+  <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
+    comprar por Stripe!
+  </button>
+
+  <div class="small">-3% descuento</div>
+</div>
+
+<style>
+.card {
+  position: relative;
+}
+
+/* CUADRO NEW */
+.badge-new {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: linear-gradient(135deg, #00eaff, #007bff);
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
+  animation: zoomOut 2s infinite ease-in-out;
+}
+
+/* ANIMACIÓN ZOOM OUT */
+@keyframes zoomOut {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(0.9); }
+  100% { transform: scale(1.1); }
+}
+</style>
+
+
 <div class="card">
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('2000 robux', 22.99)">
+  <button class="btn-add" onclick="agregarAlCarrito('2000 robux', 24.99 🔺)">
     ADD<br>🛒
   </button>
 
@@ -1622,11 +2427,11 @@ actualizarTotal();
 
   <!-- PRECIO -->
   <div class="price-row">
-    <div class="price">$22.99</div>
+    <div class="price">$24.99 🔺</div>
   </div>
 
   <!-- BOTONES -->
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%202000%20robux%20por%20$22.99','_blank')">
+  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%202000%20robux%20por%20$24.99','_blank')">
     Comprar WhatsApp
   </button>
 
@@ -1638,6 +2443,8 @@ actualizarTotal();
   <div class="small">DISPONIBLE CON DN7</div>
 
 </div>
+
+
 
 <h1>Paquetes Especiales ⭐✨</h1>
 
@@ -1713,6 +2520,8 @@ border-radius:8px;
 
 </div>
 
+
+
 <div class="card">
 
   <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
@@ -1747,6 +2556,7 @@ border-radius:8px;
 
 </div>
 
+
 <div class="card">
 
   <!-- BOTÓN ADD (más pequeño SOLO aquí) -->
@@ -1780,6 +2590,8 @@ border-radius:8px;
   <div class="small">DISPONIBLE CON V.I.P!</div>
 
 </div>
+
+
 
 <!-- Membresías -->
 <section class="memberships" aria-labelledby="membersTitle">
@@ -1820,6 +2632,7 @@ border-radius:8px;
 
 </div>
 
+
     
     <div class="card membership">
 
@@ -1855,6 +2668,7 @@ border-radius:8px;
   <div class="small">Extra robux en paquetes</div>
 
 </div>
+
 
     
 <div class="card membership">
@@ -2051,19 +2865,19 @@ body{
 
     <div class="package">
       <button class="add-btn" onclick="agregarAlCarrito('200 Diamantes Free Fire',3.24)">ADD<br>🛒</button>
-      <h3>💎 200 Diamantes</h3><p>$2.99</p>
+      <h3>💎 200 Diamantes</h3><p>$3.24</p>
       <button class="buy-btn" onclick="abrirModal('200 Diamantes','$3.24')">Comprar</button>
     </div>
 
     <div class="package">
       <button class="add-btn" onclick="agregarAlCarrito('300 Diamantes Free Fire',4.49)">ADD<br>🛒</button>
-      <h3>💎 300 Diamantes</h3><p>$3.99</p>
+      <h3>💎 300 Diamantes</h3><p>$4.49</p>
       <button class="buy-btn" onclick="abrirModal('300 Diamantes','$4.49')">Comprar</button>
     </div>
 
     <div class="package">
       <button class="add-btn" onclick="agregarAlCarrito('400 Diamantes Free Fire',5.99)">ADD<br>🛒</button>
-      <h3>💎 400 Diamantes</h3><p>$5.49</p>
+      <h3>💎 400 Diamantes</h3><p>$5.99</p>
       <button class="buy-btn" onclick="abrirModal('400 Diamantes','$5.99')">Comprar</button>
     </div>
 
@@ -2075,7 +2889,7 @@ body{
 
     <div class="package">
       <button class="add-btn" onclick="agregarAlCarrito('600 Diamantes Free Fire',7.99)">ADD<br>🛒</button>
-      <h3>💎 600 Diamantes</h3><p>$7.49</p>
+      <h3>💎 600 Diamantes</h3><p>$7.99</p>
       <button class="buy-btn" onclick="abrirModal('600 Diamantes','$7.99')">Comprar</button>
     </div>
 <div class="package">
