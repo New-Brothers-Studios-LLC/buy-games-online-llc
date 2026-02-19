@@ -11,31 +11,33 @@
 <meta name="google-site-verification" content="vD1F80dNjXhWhgxG7U8fRYBPnhG6ThwzzU76gc9pDGc"/>
 <style>
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
+<style>
     :root {
         --neon-blue: #00e5ff;
         --electric-pink: #ff0055;
         --gold: #ffcc00;
         --bg-dark: #02040a;
+        --card-bg: rgba(10, 15, 28, 0.95);
+        --neon-green: #00ff88;
     }
 
     body {
         background-color: var(--bg-dark);
         color: white;
-        font-family: 'Orbitron', sans-serif;
+        font-family: 'Poppins', sans-serif;
         margin: 0;
         overflow-x: hidden;
     }
 
-    /* BARRA DE TOKENS (IZQUIERDA) */
+    /* BARRA DE TOKENS */
     .token-bar {
         position: fixed; top: 15px; left: 0;
         background: var(--neon-blue); color: #000;
-        padding: 10px 20px; border-radius: 0 20px 20px 0;
+        padding: 10px 25px; border-radius: 0 20px 20px 0;
         font-weight: bold; z-index: 1000; font-size: 14px;
-        box-shadow: 0 0 15px var(--neon-blue);
+        box-shadow: 0 0 20px var(--neon-blue);
+        font-family: 'Orbitron', sans-serif;
     }
 
     /* BURBUJAS FLOTANTES */
@@ -43,9 +45,26 @@
         position: fixed; right: 26px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; z-index: 999;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     #btn-wheel { bottom: 120px; width: 80px; height: 80px; background: linear-gradient(135deg, var(--neon-blue), #007bb5); font-size: 35px; box-shadow: 0 0 20px var(--neon-blue); }
-    #btn-key { bottom: 40px; width: 55px; height: 55px; background: linear-gradient(135deg, var(--gold), #ff6600); font-size: 25px; box-shadow: 0 0 15px #ff6600; }
+    #btn-key { bottom: 40px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--gold), #ff6600); font-size: 25px; box-shadow: 0 0 15px #ff6600; }
+
+    /* OVERLAY ANALIZANDO CÓDIGO */
+    #scanner-overlay {
+        display: none; position: fixed; inset: 0; z-index: 200000;
+        background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
+        flex-direction: column; align-items: center; justify-content: center;
+    }
+    .scanner-content { text-align: center; }
+    .loader-ring {
+        width: 80px; height: 80px; border: 4px solid rgba(0, 229, 255, 0.1);
+        border-top: 4px solid var(--neon-blue); border-radius: 50%;
+        animation: spin 1s linear infinite; margin-bottom: 20px;
+    }
+    .scanner-text { font-family: 'Orbitron'; letter-spacing: 2px; font-size: 16px; color: var(--neon-blue); }
+    
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* OVERLAY RULETA */
     #overlay {
@@ -55,222 +74,278 @@
     }
 
     #container {
-        position: relative; width: 90%; max-width: 400px;
-        background: #0a0f1e; padding: 20px; border-radius: 30px;
-        border: 2px solid var(--neon-blue); text-align: center;
-        margin: auto;
+        position: relative; width: 92%; max-width: 420px;
+        background: var(--card-bg); padding: 25px; border-radius: 30px;
+        border: 1px solid rgba(0, 229, 255, 0.3); text-align: center;
+        margin: auto; box-shadow: 0 10px 50px rgba(0,0,0,0.5);
     }
 
-    /* LA FLECHA INDICADORA (FIJA ARRIBA) */
+    /* CONTENEDOR DE RULETA PARA POSICIONAR LA FLECHA */
+    .wheel-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-top: 20px;
+    }
+
+    /* FLECHA ROSA - AHORA PEGADA A LA RULETA */
     #arrow-indicator {
-    position: absolute;
-    top: 55px; /* Esto la baja para que no tape el botón [ CERRAR ] */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 40px solid #ff0055; /* Color Rosa Neón */
-    z-index: 11000;
-    filter: drop-shadow(0 0 10px #ff0055);
-}
+        position: absolute; 
+        top: -15px; /* Ajustada para estar pegada al borde superior del círculo */
+        left: 50%;
+        transform: translateX(-50%); 
+        width: 0; 
+        height: 0;
+        border-left: 18px solid transparent; 
+        border-right: 18px solid transparent;
+        border-top: 30px solid var(--electric-pink); 
+        z-index: 50;
+        filter: drop-shadow(0 0 8px var(--electric-pink));
+        pointer-events: none;
+    }
+
     canvas {
         width: 100%; max-width: 320px; height: auto;
-        border-radius: 50%; border: 10px solid #111;
-        margin-top: 25px; /* Espacio para que la flecha no tape el centro */
+        border-radius: 50%; border: 6px solid #0a0f1e;
+        transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1);
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
     }
 
-    /* BOTON GIRAR */
     .spin-btn {
-        background: #00bfff; border: none; padding: 18px;
+        background: var(--neon-blue); border: none; padding: 18px;
         width: 100%; border-radius: 15px; color: #000;
-        font-weight: bold; font-size: 20px; margin-top: 20px;
-        text-transform: uppercase; box-shadow: 0 0 15px #00bfff;
+        font-weight: bold; font-size: 20px; margin-top: 25px;
+        text-transform: uppercase; font-family: 'Orbitron';
+        cursor: pointer;
     }
 
-    /* FILA DE 2 EN 2 (BUNDLES) */
+    /* GRID DE PAQUETES */
     .bundle-grid {
-        margin-top: 25px;
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* DOS COLUMNAS */
-        gap: 10px;
+        margin-top: 30px; display: grid;
+        grid-template-columns: 1fr 1fr; gap: 12px;
     }
-
     .bundle-card {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--neon-blue);
-        border-radius: 12px; padding: 15px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 229, 255, 0.1);
+        border-radius: 15px; padding: 15px; text-align: center; cursor: pointer;
+    }
+    .bundle-card b { display: block; color: var(--neon-blue); font-size: 14px; font-family: 'Orbitron'; margin-bottom: 4px;}
+    .bundle-card .price { display: block; color: var(--neon-green); font-weight: bold; font-size: 13px; }
+
+    /* MODAL CANJEO */
+    #redeem-modal {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+        z-index: 100000; justify-content: center; align-items: center;
+    }
+    .redeem-card {
+        background: #0a0f1e; border: 1px solid var(--neon-blue);
+        border-radius: 25px; padding: 35px; width: 88%; max-width: 380px;
         text-align: center;
     }
-    .bundle-card b { display: block; color: var(--neon-blue); font-size: 14px; }
-    .bundle-card span { font-size: 11px; color: #aaa; }
+    .redeem-input {
+        width: 100%; background: #000; border: 1px solid #1a2a44;
+        border-radius: 12px; padding: 15px; color: #fff; text-align: center;
+        font-size: 18px; font-family: 'Orbitron'; margin-bottom: 20px; outline: none;
+    }
+    .success { color: var(--neon-green); }
+    .error { color: var(--electric-pink); }
 </style>
 </head>
 <body>
 
 <div class="token-bar">TOKENS: <span id="tk-val">0</span></div>
 
-<div id="btn-wheel" class="bubble" onclick="openWheel()">🎡</div>
-<div id="btn-key" class="bubble" onclick="openKey()">🔐</div>
+<div id="btn-wheel" class="bubble" onclick="toggleRuleta()">🎡</div>
+<div id="btn-key" class="bubble" onclick="toggleRedeem()">🔐</div>
+
+<div id="scanner-overlay">
+    <div class="scanner-content">
+        <div class="loader-ring"></div>
+        <div id="scanner-msg" class="scanner-text">ANALIZANDO CÓDIGO...</div>
+    </div>
+</div>
+
+<div id="redeem-modal">
+    <div class="redeem-card">
+        <h2 style="font-family:'Orbitron'; color:var(--neon-blue); font-size:18px; margin-bottom:25px;">SISTEMA DE CANJEO</h2>
+        <input type="text" id="code-input" class="redeem-input" placeholder="INGRESA TU CÓDIGO">
+        <button class="spin-btn" onclick="procesarAnalisis()">VERIFICAR</button>
+        <div onclick="toggleRedeem()" style="margin-top:20px; color:#666; cursor:pointer; font-size:12px;">[ CERRAR ]</div>
+    </div>
+</div>
 
 <div id="overlay">
     <div id="container">
-        <div onclick="openWheel()" style="color:red; cursor:pointer; font-weight:bold; font-size:12px; margin-bottom: 10px;">[ CERRAR ]</div>
+        <div onclick="toggleRuleta()" style="color:var(--electric-pink); cursor:pointer; font-weight:bold; font-size:12px; margin-bottom: 5px;">[ CERRAR ]</div>
+
+<h1> ⬇️</h1>
         
-        <div id="arrow-indicator"></div>
-
-
-       
-        <canvas id="canvas" width="500" height="500"></canvas>
+        <div class="wheel-wrapper">
+            <div id="arrow-indicator"></div>
+            <canvas id="canvas" width="500" height="500"></canvas>
+        </div>
         
-        <div id="status-msg" style="margin-top:15px; color:var(--neon-blue); font-size:14px; font-weight:bold; height:20px;"></div>
-
-
-
-<h1 class="ruleta-texto">Ruleta Nerfeada 40%</h1>
-
-<style>
-.ruleta-texto {
-    font-size: 18px; /* letra pequeña */
-    font-weight: 600;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    
-    /* degradado azulado-negruzco */
-    background: linear-gradient(90deg, #0a0f1f, #0d2a5c, #000814);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    
-    /* mejora visual */
-    text-shadow: 0 0 6px rgba(0, 80, 255, 0.3);
-    letter-spacing: 1px;
-}
-</style>
-        
-        <button class="spin-btn" onclick="startSpin()">GIRAR ×2 TOKENS</button>
-
+        <div id="status-msg" style="margin-top:15px; color:var(--neon-blue); font-family:'Orbitron'; font-size:14px; height:20px;"></div>
+        <h1 style="font-family:'Orbitron'; font-size:18px; margin-top:15px;">Ruleta Nerfeada 60%</h1>
+        <button class="spin-btn" onclick="iniciarGiro()">GIRA ×2 TOKENS</button>
         <div class="bundle-grid" id="bundle-list"></div>
     </div>
 </div>
 
 <script>
-    const KEY_SISTEMA = "VERSION_Móvil_FLECHA_V1";
     const WHATSAPP = "50373826693";
+    const CODES_DB = {
+        "AZ1278898":1,"AX1376123":2,"AB1772132":3,"AM1381243":4,
+        "HZ19371221":5,"JA18627182":6,"AL186213313":12,"NEW8137812":16,
+        "AV193812321":22,"AQ1371319318":32,"AP103819381":92
+    };
+
+    const sectors = [
+        {n: "40 Robux", prob: 0.01, c: "#220000"},
+        {n: "80 Robux", prob: 0.005, c: "#440000"},
+        {n: "100 Diams", prob: 0.001, c: "#002200"},
+        {n: "500 Diams", prob: 0.0001, c: "#004400"},
+        {n: "Prem. Bronce", prob: 0.05, c: "#111"},
+        {n: "Prem. Bronce V", prob: 0.05, c: "#222"},
+        {n: "VIP Ultra", prob: 0.07, c: "#002244"},
+        {n: "Bono +10%", prob: 0.30, c: "#331a00"},
+        {n: "Bono +15%", prob: 0.40, c: "#442200"},
+        {n: "Bono +25%", prob: 0.15, c: "#000044"}
+    ];
+
+    let tokens = parseInt(localStorage.getItem("tks_neon")) || 0;
     let rotation = 0;
     let isSpinning = false;
 
-    // Control de Versión / Reinicio
-    if(localStorage.getItem("v_key") !== KEY_SISTEMA){
-        localStorage.clear();
-        localStorage.setItem("v_key", KEY_SISTEMA);
+    function sync() {
+        localStorage.setItem("tks_neon", tokens);
+        document.getElementById("tk-val").innerText = tokens;
     }
 
-    let tokens = parseInt(localStorage.getItem("tks")) || 0;
-    function sync() { document.getElementById("tk-val").innerText = tokens; localStorage.setItem("tks", tokens); }
-    sync();
+    function toggleRedeem() {
+        const m = document.getElementById("redeem-modal");
+        m.style.display = (m.style.display === "flex") ? "none" : "flex";
+    }
 
-    // Inyectar Bundles 2x2
-    const packs = [{p: 0.99, t: 1}, {p: 1.90, t: 2}, {p: 2.80, t: 3}, {p: 3.80, t: 4}, {p: 4.99, t: 5}, {p: 5.99, t: 6}, {p: 6.99, t: 7}, {p: 7.85, t: 8}, {p: 8.95, t: 9}, {p: 9.99, t: 10}, {p: 12.99, t: 14}, {p: 14.99, t: 19}, {p: 16.99, t: 20}, {p: 17.85, t: 23}, {p: 19.99, t: 25}];
-    const bundleList = document.getElementById("bundle-list");
+    function procesarAnalisis() {
+        const input = document.getElementById("code-input");
+        const code = input.value.trim().toUpperCase();
+        if(!code) return;
+        const overlay = document.getElementById("scanner-overlay");
+        const msg = document.getElementById("scanner-msg");
+        overlay.style.display = "flex";
+        msg.innerText = "ANALIZANDO CÓDIGO...";
+        let used = JSON.parse(localStorage.getItem("used_neon")) || [];
+        if (CODES_DB[code] && !used.includes(code)) {
+            setTimeout(() => {
+                msg.innerText = "¡Código Aceptado!";
+                msg.classList.add("success");
+                setTimeout(() => {
+                    tokens += CODES_DB[code];
+                    used.push(code);
+                    localStorage.setItem("used_neon", JSON.stringify(used));
+                    sync();
+                    overlay.style.display = "none";
+                    toggleRedeem();
+                }, 1000);
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                msg.innerText = used.includes(code) ? "CÓDIGO YA USADO" : "CÓDIGO INCORRECTO";
+                msg.classList.add("error");
+                setTimeout(() => { overlay.style.display = "none"; }, 2000);
+            }, 3000);
+        }
+    }
+
+    function draw() {
+        const cvs = document.getElementById("canvas");
+        const ctx = cvs.getContext("2d");
+        const arc = (Math.PI * 2) / sectors.length;
+        ctx.clearRect(0,0,500,500);
+        sectors.forEach((s, i) => {
+            ctx.beginPath(); ctx.fillStyle = s.c; ctx.moveTo(250, 250);
+            ctx.arc(250, 250, 250, i*arc, (i+1)*arc); ctx.fill();
+            ctx.strokeStyle = "rgba(0, 229, 255, 0.1)"; ctx.stroke();
+            ctx.save(); ctx.translate(250, 250); ctx.rotate(i*arc + arc/2);
+            ctx.fillStyle = "#fff"; ctx.font = "bold 13px Orbitron";
+            ctx.textAlign = "right"; ctx.fillText(s.n, 235, 5); ctx.restore();
+        });
+    }
+
+    function iniciarGiro() {
+        if (isSpinning || tokens < 2) return (tokens < 2 ? alert("Faltan Tokens") : null);
+        tokens -= 2; sync();
+        isSpinning = true;
+        document.getElementById("status-msg").innerText = "SORTEANDO...";
+        let r = Math.random(), s = 0, win = 0;
+        for (let i = 0; i < sectors.length; i++) {
+            s += sectors[i].prob; if (r < s) { win = i; break; }
+        }
+        let deg = 360 / sectors.length;
+        let destino = (360 - (win * deg)) - (deg / 2);
+        rotation += (360 * 10) + ((destino + 270) - (rotation % 360) + 360) % 360;
+        document.getElementById("canvas").style.transform = `rotate(${rotation}deg)`;
+        setTimeout(() => {
+            isSpinning = false;
+            let premio = sectors[win].n;
+            document.getElementById("status-msg").innerText = "¡GANASTE: " + premio + "!";
+            setTimeout(() => window.open(`https://wa.me/${WHATSAPP}?text=Gané ${premio}`), 800);
+        }, 5000);
+    }
+
+    function toggleRuleta() {
+        const o = document.getElementById("overlay");
+        o.style.display = (o.style.display === "flex") ? "none" : "flex";
+        if(o.style.display === "flex") setTimeout(draw, 50);
+    }
+
+    const packs = [
+        {t:1, p:1.49}, {t:2, p:1.99}, {t:3, p:2.99}, {t:5, p:4.50},
+        {t:10, p:8.50}, {t:15, p:12.00}, {t:20, p:15.00}, {t:30, p:20.00},
+        {t:50, p:30.00}, {t:100, p:55.00}
+    ];
+    const list = document.getElementById("bundle-list");
     packs.forEach(p => {
-        bundleList.innerHTML += `
+        list.innerHTML += `
             <div class="bundle-card" onclick="window.open('https://wa.me/${WHATSAPP}?text=Compro ${p.t} Tokens')">
                 <b>${p.t} TOKENS</b>
-                <span>$${p.p} USD</span>
+                <span class="price">$${p.p} USD</span>
             </div>
         `;
     });
 
-    // Función de Canje
-    function openKey() {
-        let code = prompt("🔐 INGRESA TU CÓDIGO:");
-        const CODES = {"AZ1278898":1,"AX1376123":2,"AB1772132":3,"AM1381243":4,"HZ19371221":5,"JA18627182":6,"AL186213313":12,"NEW8137812":16,"AV193812321":22,"AQ1371319318":32,"AP103819381":92};
-        let used = JSON.parse(localStorage.getItem("used")) || [];
-        if(used.includes(code)) return alert("Código ya usado.");
-        if(CODES[code]) {
-            tokens += CODES[code];
-            used.push(code);
-            localStorage.setItem("used", JSON.stringify(used));
-            sync();
-            alert("¡Tokens añadidos!");
-        } else { if(code) alert("Código inválido."); }
+    window.onload = () => { sync(); draw(); };
+</script>
+
+
+<script>
+/* ===== FIX GLOBAL DE TOKENS ===== */
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Si no existe valor, lo crea
+    if (!localStorage.getItem("tks")) {
+        localStorage.setItem("tks", "0");
     }
 
-    // Dibujar Ruleta
-    const cvs = document.getElementById("canvas");
-    const ctx = cvs.getContext("2d");
-    const sectors = [
-        {n: "40 Robux", prob: 0.01, c: "#ff0000"}, {n: "100 Diamantes", prob: 0.00001, c: "#00ff00"}, 
-        {n: "Premium Bronce", prob: 0.05, c: "#ff00ff"}, {n: "Premium Bronce V", prob: 0.05, c: "#ffff00"}, 
-        {n: "Desc. VIP Ultra", prob: 0.07, c: "#00ffff"}, {n: "Bono +10%", prob: 0.40, c: "#ff8000"}, 
-        {n: "Bono +15%", prob: 0.50, c: "#7f00ff"}, {n: "Bono +25%", prob: 0.45, c: "#0000ff"},
-        {n: "80 Robux", prob: 0, c: "#333"}, {n: "500 Robux", prob: 0, c: "#222"}, {n: "500 Diamantes", prob: 0, c: "#111"}
-    ];
-
-    function draw() {
-        let arc = (Math.PI * 2) / sectors.length;
-        sectors.forEach((s, i) => {
-            ctx.beginPath(); ctx.fillStyle = s.c; ctx.moveTo(250, 250);
-            ctx.arc(250, 250, 250, i*arc, (i+1)*arc); ctx.fill();
-            ctx.save(); ctx.translate(250, 250); ctx.rotate(i*arc + arc/2);
-            ctx.fillStyle = "#fff"; ctx.font = "bold 14px Orbitron"; ctx.fillText(s.n, 100, 5); ctx.restore();
-        });
-    }
-    draw();
-
-    // Lógica de Giro Sincronizada con la Flecha
-    function startSpin() {
-    if (isSpinning) return;
-    if (tokens < 2) return alert("Necesitas 2 Tokens.");
-
-    tokens -= 2; 
-    sync();
-    isSpinning = true;
-    document.getElementById("status-msg").innerText = "GIRANDO...";
-
-    // 1. Decidir ganador
-    let r = Math.random();
-    let s = 0; 
-    let win = 0;
-    for (let i = 0; i < sectors.length; i++) {
-        s += sectors[i].prob;
-        if (r < s) { 
-            win = i; 
-            break; 
+    // Actualiza el contador visual
+    function actualizarTokens() {
+        let valor = parseInt(localStorage.getItem("tks")) || 0;
+        let tk = document.getElementById("tk-val");
+        if (tk) {
+            tk.innerText = valor;
         }
     }
 
-    // 2. Lógica de la Flecha (Sincronización arriba)
-    let gradosSector = 360 / sectors.length;
-    let vueltasBase = 360 * 10;
-    
-    // Calculamos para que el centro del premio quede a 270 grados (donde está tu flecha)
-    let destino = (360 - (win * gradosSector)) - (gradosSector / 2);
-    rotation += vueltasBase + ((destino + 270) - (rotation % 360) + 360) % 360;
+    // Ejecutar al cargar
+    actualizarTokens();
 
-    const canvasRuleta = document.getElementById("canvas");
-    canvasRuleta.style.transition = "transform 5s cubic-bezier(0.15, 0, 0.15, 1)";
-    canvasRuleta.style.transform = `rotate(${rotation}deg)`;
+    // También escuchar cambios en localStorage
+    window.addEventListener("storage", actualizarTokens);
 
-    // 3. Mostrar resultado
-    setTimeout(() => {
-        isSpinning = false;
-        let premioFinal = sectors[win].n;
-        document.getElementById("status-msg").innerText = "¡GANASTE: " + premioFinal + "!";
-        
-        setTimeout(() => {
-            window.open(`https://wa.me/${WHATSAPP}?text=Gané ${premioFinal} en la ruleta!`, "_blank");
-        }, 1000);
-    }, 5000);
-}
-
-
-    function openWheel() {
-        let o = document.getElementById("overlay");
-        o.style.display = (o.style.display == "flex") ? "none" : "flex";
-    }
+    // Exponer función global para usar desde otros scripts
+    window.actualizarTokens = actualizarTokens;
+});
 </script>
-
 
 <style>
 /* ====== Base y Reset ====== */
@@ -477,6 +552,342 @@ footer{
   text-shadow:0 0 10px rgba(255,255,255,.35);
 }
 </style>
+    
+
+<style>
+    /* Diseño del Fondo de la Ruleta y Animaciones Neón */
+    #canvas {
+        /* Fondo azulado degradado a negro */
+        background: radial-gradient(circle, #001a33 0%, #000000 100%) !important;
+        
+        /* Borde Neón Azul */
+        border: 6px solid #00e5ff !important;
+        border-radius: 50% !important;
+        
+        /* Sombra de resplandor (Glow) */
+        box-shadow: 0 0 30px rgba(0, 229, 255, 0.6), inset 0 0 20px rgba(0, 229, 255, 0.3) !important;
+        
+        /* Animación de entrada suave */
+        animation: ruletaEntrada 0.8s ease-out, pulsoNeon 3s infinite ease-in-out;
+        
+        display: block;
+        margin: 20px auto;
+    }
+
+    /* Animación de pulso de luz */
+    @keyframes pulsoNeon {
+        0%, 100% { 
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5); 
+            border-color: #00e5ff; 
+        }
+        50% { 
+            box-shadow: 0 0 45px rgba(0, 229, 255, 0.8); 
+            border-color: #0088ff; 
+        }
+    }
+
+    /* Animación de aparición */
+    @keyframes ruletaEntrada {
+        from { 
+            opacity: 0; 
+            transform: scale(0.7) rotate(-20deg); 
+            filter: blur(10px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: scale(1) rotate(0deg); 
+            filter: blur(0); 
+        }
+    }
+
+    /* Mejora para los textos de la ruleta si usas Orbitron */
+    .ruleta-container canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+</style>
+
+<style>
+    /* Estilos del Modal de Canjeo */
+    #modal-canjeo {
+        display: none; /* Se activa con JS */
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .box-canjeo {
+        background: #050a14;
+        border: 2px solid #00e5ff;
+        border-radius: 25px;
+        padding: 30px;
+        width: 90%;
+        max-width: 350px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+        animation: entradaModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .box-canjeo h2 {
+        color: #00e5ff;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .input-codigo {
+        width: 100%;
+        background: #000;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 15px;
+        color: #00e5ff;
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    .input-codigo:focus {
+        border-color: #00e5ff;
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    }
+
+    .btn-canjear {
+        background: linear-gradient(90deg, #00e5ff, #0088ff);
+        color: #000;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-canjear:active {
+        transform: scale(0.95);
+    }
+
+    .btn-cerrar-canjeo {
+        margin-top: 15px;
+        color: #ff0055;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    /* Animaciones */
+    @keyframes entradaModal {
+        from { opacity: 0; transform: scale(0.8) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .shake {
+        animation: shakeAnim 0.4s ease-in-out;
+    }
+
+    @keyframes shakeAnim {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+
+<!-- Estructura del nuevo Cuadro de Canjeo -->
+<div id="modal-canjeo">
+    <div class="box-canjeo" id="box-anim">
+        <h2>🔐 ACTIVAR LLAVE</h2>
+        <input type="text" id="input-token" class="input-codigo" placeholder="Escribe el código aquí">
+        <button class="btn-canjear" onclick="procesarCanjeo()">CANJEAR AHORA</button>
+        <div class="btn-cerrar-canjeo" onclick="cerrarCanjeo()">CANCELAR</div>
+    </div>
+</div>
+
+<script>
+    // Función para abrir el nuevo cuadro
+    function abrirCanjeo() {
+        document.getElementById("modal-canjeo").style.display = "flex";
+        document.getElementById("input-token").focus();
+    }
+
+    function cerrarCanjeo() {
+        document.getElementById("modal-canjeo").style.display = "none";
+    }
+
+    function procesarCanjeo() {
+        const codigo = document.getElementById("input-token").value.trim().toUpperCase();
+        const box = document.getElementById("box-anim");
+
+        if (codigo === "") {
+            box.classList.add("shake");
+            setTimeout(() => box.classList.remove("shake"), 400);
+            return;
+        }
+
+        // Aquí pones tu lógica de códigos que ya tenías
+        // Ejemplo:
+        if (codigo === "NUEVO10") {
+            alert("¡Felicidades! +10 Tokens");
+            cerrarCanjeo();
+        } else {
+            box.classList.add("shake");
+            setTimeout(() => box.classList.remove("shake"), 400);
+            document.getElementById("input-token").style.borderColor = "red";
+        }
+    }
+</script>
+
+<style>
+    /* Estilos del Panel Moderno */
+    #custom-redeem-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .redeem-card {
+        background: #050a14;
+        border: 2px solid #00e5ff;
+        border-radius: 20px;
+        padding: 25px;
+        width: 85%;
+        max-width: 350px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+        animation: modalShow 0.3s ease;
+    }
+
+    .redeem-card h2 {
+        color: #00e5ff;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+    }
+
+    .redeem-input {
+        width: 100%;
+        background: #000;
+        border: 1px solid #00e5ff;
+        border-radius: 10px;
+        padding: 12px;
+        color: #fff;
+        text-align: center;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        outline: none;
+    }
+
+    .btn-redeem-now {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        background: #00e5ff;
+        color: #000;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-close {
+        margin-top: 15px;
+        color: #ff4444;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    @keyframes modalShow {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .shake { animation: shake 0.4s; }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+
+<!-- Estructura HTML -->
+<div id="custom-redeem-overlay">
+    <div class="redeem-card" id="card-box">
+        <h2>🔐 INGRESAR CÓDIGO</h2>
+        <input type="text" id="code-field" class="redeem-input" placeholder="Escribe tu código aquí">
+        <button class="btn-redeem-now" onclick="ejecutarCanjeo()">ACEPTAR</button>
+        <div class="btn-close" onclick="cerrarCanjeo()">CANCELAR</div>
+    </div>
+</div>
+
+
+<script>
+    // Función para abrir el panel (Pon esto en el onclick de tu llave)
+    function abrirCanjeo() {
+        document.getElementById("custom-redeem-overlay").style.display = "flex";
+        document.getElementById("redeem-input-field").value = "";
+        document.getElementById("redeem-input-field").focus();
+    }
+
+    function cerrarPanelCanjeo() {
+        document.getElementById("custom-redeem-overlay").style.display = "none";
+    }
+
+    function validarCodigoApp() {
+        const input = document.getElementById("redeem-input-field");
+        const code = input.value.trim().toUpperCase();
+        const box = document.getElementById("redeem-box-anim");
+
+        // Datos de tu captura
+        const CODES = {
+            "AZ1278898": 1, "AX1376123": 2, "AB1772132": 3,
+            "AM1381243": 4, "HZ19371221": 5, "JA18627182": 6,
+            "AL186213313": 12, "NEW8137812": 16, "AV193812321": 22,
+            "AQ1371319318": 32, "AP103819381": 92
+        };
+
+        let used = JSON.parse(localStorage.getItem("used")) || [];
+
+        if (used.includes(code)) {
+            alert("Código ya usado.");
+            return;
+        }
+
+        if (CODES[code]) {
+            // Sumar tokens (usa tu variable global)
+            if (typeof tokens !== 'undefined') {
+                tokens += CODES[code];
+            }
+            
+            used.push(code);
+            localStorage.setItem("used", JSON.stringify(used));
+
+            // Sincronizar UI
+            if (typeof sync === 'function') sync();
+
+            alert("¡Tokens añadidos!");
+            cerrarPanelCanjeo();
+        } else {
+            // Efecto de error
+            box.classList.add("error-shake");
+            setTimeout(() => box.classList.remove("error-shake"), 400);
+        }
+    }
+</script>
 
 <!-- ========= LOADER SECUENCIAL SOLO CELULAR ========= -->
 <style>
@@ -798,7 +1209,6 @@ button[class*="whatsapp"]{
     </div>
   </div>
 </div>
-
 
 <script>
 /* ================= USUARIOS ================= */
@@ -1229,203 +1639,259 @@ render();
 </script>
 
 
-<!-- ====== CUADRO RANKING ====== -->
-<div class="install-box Ranking-box">
-  <div class="Strike Blocks for Android">
-    <span>Mini juegos</span>
-  </div>
-  <button onclick="openBuy()">Ver información</button>
-</div>
+<!-- ================= ESTRUCTURA HTML DE LOS PANELES ================= -->
 
-<!-- ====== OVERLAY INFO ====== -->
-<div class="overlay" id="buyBox">
-  <div class="buy-card">
-
-    <h2>Mini juegos × Gana robux</h2>
-
-    <p class="desc" style="text-align:left;">
-      • <b>¿Que ganas con jugar?</b><br>
-      Recompensas De videojuegos!<br><br>
-
-      • <b>ADVERTENCIA ⚠️: estos puntos tienen límite de expiración de 5 días, además de obtener las recompensas esperar hasta 14 días</b><br><br>
-
-      • <b>¿Cómo puedo ver cuántos puntos Rblx tengo</b><br>
-      R/ abajo en un recuadro tipo B, burbuja 
-      <b>indica: Puntos Rblx</b>.<br>
-      Estos puede variar según vaya ganando Rblx puntos de<b>1</b> hasta el <b>99,999</b>.
-    </p>
-
-    <p style="font-weight:bold;color:#c89b3c;">Quieres saber cuántos puntos × recompensa: 
-
-| 899 puntos Rblx = 40 Robux Gratis
-| 1,899 puntos Rblx = 80 Robux Gratis 
-| 2,999 puntos Rblx = 120 robux gratis 
-
-</p>
-
-    <button class="buy-btn" onclick="inspectRanking()">
-      JUGAR JUEGOS BY: SOFT CORPORATIÓN 
-    </button>
-
-    <button class="close-btn" onclick="closeBuy()">Cerrar</button>
+<!-- Panel Principal de Compra -->
+<div id="overlayCompra" class="overlay">
+  <div class="panel">
+    <button class="closeBtn" onclick="cerrarCompra()">✖</button>
+    <h2>Confirmar Pedido</h2>
+    <div class="grid-premium">
+      <div class="info-card full">
+        <span>PAQUETE SELECCIONADO</span>
+        <p id="cantidadRobux">0 Robux</p>
+      </div>
+      <div class="info-card">
+        <span>DESCUENTO</span>
+        <p id="descuentoTexto" class="text-glow-green">0%</p>
+      </div>
+      <div class="info-card">
+        <div class="bonus-header">
+          <span>BONUS</span>
+          <div class="fire-anim">🔥</div>
+        </div>
+        <p id="bonusTexto" class="text-glow-gold">0</p>
+      </div>
+    </div>
+    <hr class="separator">
+    <div class="total-container">
+      <h2 id="totalTexto">TOTAL: $0.00</h2>
+    </div>
+    <button id="btnPagar">PROCEDER AL PAGO</button>
   </div>
 </div>
 
-<!-- ====== OVERLAY CARGANDO ====== -->
-<div class="overlay" id="loadingBox">
-  <div class="buy-card">
-    <div class="loader"></div>
-    <p style="margin-top:15px;font-weight:bold;">Cargando...</p>
+<!-- Overlay de Proceso: Validando Código -->
+<div id="overlayValidando" class="overlay">
+  <div class="panel loader-panel">
+    <div class="spinner"></div>
+    <h2 id="textoValidando" style="background:none; -webkit-text-fill-color:white; margin-top:25px; font-size: 20px;">Validando Código.</h2>
   </div>
 </div>
 
+<!-- Overlay Resultado: ÉXITO -->
+<div id="overlayExito" class="overlay">
+  <div class="panel success-panel">
+    <div class="icon-result">✅</div>
+    <h2>Validación Completada</h2>
+    <p class="sub-text-pale">Descuento/Bonus Obtenido!</p>
+    <button class="btn-secondary" onclick="cerrarResultado('overlayExito')">CONTINUAR</button>
+  </div>
+</div>
+
+<!-- Overlay Resultado: ERROR -->
+<div id="overlayError" class="overlay">
+  <div class="panel error-panel">
+    <div class="icon-result">✖️</div>
+    <h2 style="background:none; -webkit-text-fill-color:#ff4444; margin-bottom:10px;">Error</h2>
+    <p style="font-size: 15px; margin-bottom: 5px; line-height: 1.4;">Este Código de descuento no cubre este paquete o código inválido.</p>
+    <p class="sub-text-pale">Inténtalo más tarde</p>
+    <button class="btn-secondary" style="background:#ff4444; color:white;" onclick="cerrarResultado('overlayError')">CERRAR</button>
+  </div>
+</div>
+
+<!-- Acceso Flotante al Código -->
+<div id="burbujaCodigo" onclick="abrirCodigo()">🔐</div>
+
+<div id="overlayCodigo" class="overlay">
+  <div class="panel glass-panel">
+    <button class="closeBtn" onclick="cerrarCodigo()">✖</button>
+    <h2>Canjear Cupón</h2>
+    <input type="text" id="codigoInput" placeholder="Ingresa tu código...">
+    <button class="btn-action" onclick="iniciarValidacion()">APLICAR CÓDIGO</button>
+  </div>
+</div>
+
+<!-- ================= ESTILOS CSS (PREMIUM DARK) ================= -->
 <style>
-/* ====== CAJA RANKING ====== */
-.install-box{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%) translateY(120px);
-  background:linear-gradient(135deg,#0b1a2a,#132b44);
-  border:2px solid #0aa8ff;
-  border-radius:14px;
-  padding:12px 18px;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  animation:slideUp .8s ease forwards;
-  box-shadow:0 0 25px rgba(10,168,255,.45);
-  z-index:999;
+:root {
+  --azul-brillante: #00bfff;
+  --azul-fuerte: #0077b6;
+  --negro-profundo: #05070a;
+  --gris-panel: rgba(15, 23, 42, 0.98);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --pale-text: #64748b;
 }
 
-@keyframes slideUp{
-  to{ transform:translateX(-50%) translateY(0); }
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
-.Ranking span{
-  font-size:16px;
-  font-weight:bold;
-  color:#f5c76a;
+.panel {
+  position: relative;
+  background: var(--gris-panel);
+  background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  padding: 35px;
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  color: white;
+  text-align: center;
+  width: 88%;
+  max-width: 380px;
+  box-shadow: 0 0 40px rgba(0, 191, 255, 0.25);
+  animation: modalIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.install-box button{
-  background:linear-gradient(135deg,#0aa8ff,#057fd1);
-  color:#0b1a2a;
-  border:none;
-  padding:8px 14px;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:pointer;
+@keyframes modalIn {
+  from { transform: translateY(30px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ====== OVERLAYS ====== */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:1000;
+.spinner {
+  width: 65px;
+  height: 65px;
+  border: 6px solid rgba(0, 191, 255, 0.1);
+  border-top: 6px solid var(--azul-brillante);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 0.8s linear infinite;
 }
 
-.buy-card{
-  background:linear-gradient(160deg,#f0f0f0,#d9d9d9);
-  border:2px solid #0aa8ff;
-  border-radius:18px;
-  padding:22px;
-  width:90%;
-  max-width:420px;
-  text-align:center;
-  animation:pop .4s ease;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.icon-result { font-size: 65px; margin-bottom: 20px; }
+.sub-text-pale { color: var(--pale-text); font-size: 14px; margin-top: 5px; margin-bottom: 25px; }
+
+.grid-premium { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
+.info-card { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); padding: 18px; border-radius: 18px; }
+.info-card.full { grid-column: span 2; }
+.info-card span { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+.info-card p { margin: 0; font-size: 19px; font-weight: 800; }
+
+.fire-anim { font-size: 24px; animation: fireCycle 1.5s infinite ease-in-out; }
+@keyframes fireCycle {
+  0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 5px #ff4500); }
+  50% { transform: scale(1.45); filter: brightness(1.4) drop-shadow(0 0 15px #ff8c00); }
 }
 
-@keyframes pop{
-  from{transform:scale(.8); opacity:0;}
-  to{transform:scale(1); opacity:1;}
+#btnPagar, .btn-action {
+  background: linear-gradient(135deg, var(--azul-brillante), var(--azul-fuerte));
+  border: none; padding: 18px; width: 100%; font-size: 17px; font-weight: 900;
+  color: white; border-radius: 15px; cursor: pointer; box-shadow: 0 10px 25px rgba(0, 191, 255, 0.35); transition: 0.3s;
 }
 
-.buy-card h2{
-  color:#c89b3c;
-  margin-bottom:10px;
+.btn-secondary { background: white; color: black; border: none; padding: 14px 30px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+
+#codigoInput {
+  width: 100%; padding: 16px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border);
+  border-radius: 14px; color: white; text-align: center; margin-bottom: 25px; box-sizing: border-box; outline: none;
 }
 
-.desc{
-  font-size:13px;
-  color:#2f2f2f;
-  line-height:1.4;
-  margin-bottom:16px;
+h2 { font-weight: 900; text-transform: uppercase; background: linear-gradient(to right, #ffffff, var(--azul-brillante)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+#burbujaCodigo {
+  position: fixed; bottom: 30px; right: 30px; background: var(--negro-profundo);
+  border: 2px solid var(--azul-brillante); width: 65px; height: 65px;
+  display: none; justify-content: center; align-items: center; border-radius: 20px;
+  font-size: 26px; cursor: pointer; z-index: 10000;
 }
 
-.buy-btn{
-  background:linear-gradient(135deg,#0aa8ff,#057fd1);
-  color:#0b1a2a;
-  border:none;
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  font-weight:bold;
-  font-size:15px;
-  cursor:pointer;
-  margin-bottom:8px;
-}
-
-.close-btn{
-  background:none;
-  color:#6a6a6a;
-  border:none;
-  cursor:pointer;
-}
-
-/* ====== LOADER ====== */
-.loader{
-  width:50px;
-  height:50px;
-  border:5px solid #ccc;
-  border-top:5px solid #0aa8ff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  margin:auto;
-}
-
-@keyframes spin{
-  to{ transform:rotate(360deg); }
-}
-
-#loadingBox p{
-  color:#f5c76a;
-}
+.separator { border: 0; height: 1px; background: linear-gradient(to right, transparent, var(--glass-border), transparent); margin: 25px 0; }
+#totalTexto { font-size: 36px; color: var(--azul-brillante); text-shadow: 0 0 20px rgba(0, 191, 255, 0.4); }
+.text-glow-green { color: #4ade80; }
+.text-glow-gold { color: #fbbf24; }
+.closeBtn { position: absolute; top: 18px; right: 18px; background: none; border: none; color: #64748b; font-size: 22px; cursor: pointer; }
 </style>
 
+<!-- ================= LÓGICA JAVASCRIPT ================= -->
 <script>
-function openBuy(){
-  document.getElementById("buyBox").style.display="flex";
+let precioBase = 0;
+let robuxActual = 0;
+let descuento = 0;
+let bonus = 0;
+
+// Base de datos de cupones
+const codigos = {
+  "RB78912357": { desc: 1, bonus: 0, paquetes: [40, 80, 160] },
+  "RB86916239": { desc: 2, bonus: 0, paquetes: [400, 200, 240, 280, 320, 360, 480, 500, 580, 660, 740, 800] },
+  "RB43415787": { desc: 4, bonus: 40, paquetes: [400, 800, 920, 1000, 1700] },
+  "RB17627PREMIUM": { desc: 5, bonus: 40, paquetes: [1000, 2000, 1700, 5600] },
+  "5FREE": { desc: 3, bonus: 0, paquetes: [1000, 800, 2000, 1700, 920] },
+  "1000%FREE": { desc: 100, bonus: 40, paquetes: [2000, 1700, 1000] }
+};
+
+function abrirCompra(robux, precio) {
+  robuxActual = robux; precioBase = precio;
+  descuento = 0; bonus = 0;
+  document.getElementById("cantidadRobux").innerText = robux.toLocaleString() + " Robux";
+  actualizarTotal();
+  document.getElementById("overlayCompra").style.display = "flex";
+  document.getElementById("burbujaCodigo").style.display = "flex";
 }
 
-function closeBuy(){
-  document.getElementById("buyBox").style.display="none";
+function cerrarCompra() {
+  document.getElementById("overlayCompra").style.display = "none";
+  document.getElementById("burbujaCodigo").style.display = "none";
 }
 
-function inspectRanking(){
-  document.getElementById("buyBox").style.display="none";
-  document.getElementById("loadingBox").style.display="flex";
+function abrirCodigo() { document.getElementById("overlayCodigo").style.display = "flex"; }
+function cerrarCodigo() { document.getElementById("overlayCodigo").style.display = "none"; }
 
-  setTimeout(()=>{
-    window.location.href =
-    "https://soft-technology-studios-llc.github.io/Strike-Blocks-For-Android/";
-  },3000);
+function iniciarValidacion() {
+  let codigo = document.getElementById("codigoInput").value.trim().toUpperCase();
+  if(!codigo) return;
+  
+  cerrarCodigo();
+  document.getElementById("overlayValidando").style.display = "flex";
+  
+  const esCorrecto = codigos[codigo] && codigos[codigo].paquetes.includes(robuxActual);
+  const tiempo = esCorrecto ? 5000 : 8000; // 5s Éxito, 8s Error
+
+  setTimeout(() => {
+    document.getElementById("overlayValidando").style.display = "none";
+    if (esCorrecto) {
+      descuento = codigos[codigo].desc;
+      bonus = codigos[codigo].bonus;
+      actualizarTotal();
+      document.getElementById("overlayExito").style.display = "flex";
+    } else {
+      document.getElementById("overlayError").style.display = "flex";
+    }
+  }, tiempo);
 }
 
-/* ====== FIX OVERLAY PEGADO AL REGRESAR ====== */
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    const buyBox = document.getElementById("buyBox");
-    const loadingBox = document.getElementById("loadingBox");
+function cerrarResultado(id) { document.getElementById(id).style.display = "none"; }
 
-    if (buyBox) buyBox.style.display = "none";
-    if (loadingBox) loadingBox.style.display = "none";
-  }
-});
+function actualizarTotal() {
+  let total = precioBase - (precioBase * (descuento / 100));
+  if (total < 0) total = 0;
+  document.getElementById("descuentoTexto").innerText = "-" + descuento + "%";
+  document.getElementById("bonusTexto").innerText = "+" + bonus;
+  document.getElementById("totalTexto").innerText = "TOTAL: $" + total.toFixed(2);
+}
+
+document.getElementById("btnPagar").onclick = function() {
+  let total = precioBase - (precioBase * (descuento / 100));
+  if (total < 0) total = 0;
+  let mensaje = `👋 *¡HOLA! VENGO DE LA TIENDA* \n\n💎 *Robux:* ${robuxActual}\n🔥 *Bonus:* +${bonus}\n📉 *Descuento:* ${descuento}%\n💰 *Total a pagar:* $${total.toFixed(2)}`;
+  window.open("https://wa.me/50373826693?text=" + encodeURIComponent(mensaje), "_blank");
+};
+
+// Animación de puntos en el texto
+let dots = 0;
+setInterval(() => {
+  dots = (dots + 1) % 4;
+  const el = document.getElementById("textoValidando");
+  if(el) el.innerText = "Validando Código" + ".".repeat(dots);
+}, 600);
 </script>
 
 <div class="top-bar" role="banner">
@@ -1453,10 +1919,9 @@ document.addEventListener("visibilitychange", () => {
     <div class="price">$0.75</div>
     <div class="price-bar"></div>
   </div>
-
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2040%20robux%20por%20$0.75','_blank')">
-    Comprar WhatsApp
-  </button>
+<button class="btn" onclick="abrirCompra(40,0.75)">
+  Comprar WhatsApp
+</button>
 
   <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2040%20robux%20por%20Stripe','_blank')">
     Comprar por Stripe |×|
@@ -1550,9 +2015,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%2080%20robux%20por%20$1.75','_blank')">
+  <button class="btn" onclick="abrirCompra(80,1.75)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1579,9 +2044,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20160%20robux%20por%20$3.25','_blank')">
+  <button class="btn" onclick="abrirCompra(160,3.25)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1642,9 +2107,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20200%20robux%20por%20$3.75','_blank')">
+  <button class="btn" onclick="abrirCompra(200,3.75)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1672,7 +2137,6 @@ actualizarTotal();
   box-shadow: 0 0 8px rgba(0, 200, 255, 0.7);
   animation: zoomOut 2s infinite ease-in-out;
 }
-
 
 /* ANIMACIÓN ZOOM OUT */
 @keyframes zoomOut {
@@ -1706,9 +2170,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20240%20robux%20por%20$4.49','_blank')">
+  <button class="btn" onclick="abrirCompra(240,4.49)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1770,9 +2234,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20280%20robux%20por%20$4.75','_blank')">
+ <button class="btn" onclick="abrirCompra(280,4.75)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1833,9 +2297,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20320%20robux%20por%20$5.25','_blank')">
+<button class="btn" onclick="abrirCompra(320,5.25)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1879,20 +2343,20 @@ actualizarTotal();
   <div class="badge-new">NEW</div>
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('360 robux', 5.49)">
+  <button class="btn-add" onclick="agregarAlCarrito('360 robux', 5.70)">
     ADD<br>🛒
   </button>
 
   <div class="robux-title">⏣ 360 robux</div>
 
   <div class="price-row">
-    <div class="price">$5.49</div>
+    <div class="price">$5.70</div>
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20360%20robux%20por%20$5.49','_blank')">
+ <button class="btn" onclick="abrirCompra(360,5.70)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -1929,7 +2393,6 @@ actualizarTotal();
 }
 </style>
 
-
 <div class="card">
 
   <!-- BOTÓN ADD -->
@@ -1944,9 +2407,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20400%20robux%20por%20$7.24','_blank')">
+  <button class="btn" onclick="abrirCompra(400,7.24)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_cNi9AVc9P5bC6YBcVq1gs02','_blank')">
     Comprar por Stripe!
@@ -1972,9 +2435,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20480%20robux%20por%20$7.25','_blank')">
+<button class="btn" onclick="abrirCompra(480,7.25)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2029,9 +2492,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20500%20robux%20por%20$7.99','_blank')">
+  <button class="btn" onclick="abrirCompra(500,7.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2086,9 +2549,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20580%20robux%20por%20$8.49','_blank')">
+  <button class="btn" onclick="abrirCompra(580,8.49)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2144,9 +2607,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20660%20robux%20por%20$9.25','_blank')">
+ <button class="btn" onclick="abrirCompra(660,9.25)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2202,9 +2665,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20740%20robux%20por%20$10.99','_blank')">
+  <button class="btn" onclick="abrirCompra(740,10.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2242,6 +2705,8 @@ actualizarTotal();
 </style>
 
 
+
+
 <div class="card">
 
 
@@ -2257,9 +2722,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20800%20robux%20por%20$12.99','_blank')">
+ <button class="btn" onclick="abrirCompra(800,12.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_00wfZj2zfcE482F6x21gs03','_blank')">
     Comprar por Stripe!
@@ -2275,20 +2740,20 @@ actualizarTotal();
   <div class="badge-new">NEW</div>
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('920 robux', 12.75)">
+  <button class="btn-add" onclick="agregarAlCarrito('920 robux', 13.99)">
     ADD<br>🛒
   </button>
 
   <div class="robux-title">⏣ 920 robux</div>
 
   <div class="price-row">
-    <div class="price">$12.75</div>
+    <div class="price">$13.99</div>
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%20920%20robux%20por%20$12.75','_blank')">
+  <button class="btn" onclick="abrirCompra(920,13.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2343,9 +2808,9 @@ actualizarTotal();
   </div>
 
   <!-- BOTONES -->
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201,000%20robux%20por%20$14.49','_blank')">
+  <button class="btn" onclick="abrirCompra(1000,14.49)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_cNi9AVc9P5bC6YBcVq1gs02','_blank')">
     Comprar por Stripe!
@@ -2375,9 +2840,9 @@ actualizarTotal();
     <div class="price-bar"></div>
   </div>
 
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%201700%20robux%20por%20$22.99','_blank')">
+  <button class="btn" onclick="abrirCompra(1700,22.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_3cI9AVfm1fQgaaN08E1gs01','_blank')">
     comprar por Stripe!
@@ -2431,9 +2896,9 @@ actualizarTotal();
   </div>
 
   <!-- BOTONES -->
-  <button class="btn" onclick="window.open('https://wa.me/50373826693?text=Quiero%20comprar%202000%20robux%20por%20$24.99','_blank')">
+  <button class="btn" onclick="abrirCompra(2000,24.99)">
     Comprar WhatsApp
-  </button>
+</button>
 
   <button class="btn" onclick="window.open('https://buy.stripe.com/test_REEMPLAZA_AQUI','_blank')">
     Comprar por Stripe!
@@ -2590,8 +3055,6 @@ border-radius:8px;
   <div class="small">DISPONIBLE CON V.I.P!</div>
 
 </div>
-
-
 
 <!-- Membresías -->
 <section class="memberships" aria-labelledby="membersTitle">
