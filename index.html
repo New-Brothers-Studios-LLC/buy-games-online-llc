@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1637,6 +1639,139 @@ function hacerPedido(){
 render();
 </script>
 
+<script>
+(function() {
+    // 1. Crear el HTML del Aviso
+    const htmlModal = `
+    <div id="nbs-aviso-overlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.96);
+        z-index: 100000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        font-family: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    ">
+        <div style="
+            background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border: 1px solid #333;
+            color: #e0e0e0;
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s ease;
+        ">
+            
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-bottom: 10px;">
+                Comunicado Oficial
+            </div>
+            
+            <h1 style="font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 30px 0; letter-spacing: -1px;">
+                Estimados <span style="color: #00bcd4;">Usuarios</span>
+            </h1>
+
+            <div style="font-size: 15px; line-height: 1.8; color: #b0b0b0; text-align: left; margin-bottom: 30px; font-weight: 300;">
+                
+                <p style="margin-bottom: 18px;">Les informamos que habrá un nuevo cambio en nuestra 
+                    <strong style="color: #fff; font-weight: 600;">política de privacidad y de historial</strong>, 
+                    los cuales serán cambiados a partir del 
+                    <span style="color: #ff9800; font-weight: 600;">08-04-2026</span>.
+                </p>
+                
+                <p style="margin-bottom: 18px;">Además de esto, los 
+                    <strong style="color: #fff; font-weight: 600;">paquetes personalizados</strong> 
+                    estarán teniendo un precio aproximadamente de 
+                    <strong style="color: #f44336; font-weight: 600;">+20%</strong> 
+                    más precio, esto será activado a partir del 
+                    <span style="color: #ff9800; font-weight: 600;">27-03-2026</span>.
+                </p>
+                
+                <p style="margin-bottom: 18px; border-left: 2px solid #00bcd4; padding-left: 15px; background: rgba(0,188,212,0.05);">
+                    También agradeciendo su apoyo a esta página para seguir vendiendo monedas virtual a los que no pueden comprar dentro del juego. Se les agradece y gracias por su atención...
+                </p>
+            </div>
+
+            <div style="font-size: 12px; color: #666; text-align: center; margin-bottom: 30px; line-height: 1.6; border-top: 1px solid #222; padding-top: 20px;">
+                ATT: <strong>New Brothers Studios LLC & Google LLC</strong><br>
+                DATA: 0-91829-8128<br>
+                <span style="color: #4caf50; font-weight: bold; font-size: 13px;">🏦 PAGO 100% SEGURO Y ADMINISTRADO POR BNC.</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <button id="nbs-btn-aceptar" style="
+                    background: #fff;
+                    color: #000;
+                    border: none;
+                    padding: 15px 40px;
+                    border-radius: 50px;
+                    font-size: 16px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+                ">
+                    ACEPTAR (+14)
+                </button>
+                <div style="font-size: 11px; color: #555; font-weight: bold; letter-spacing: 1px;">
+                    Si no se cumple con los requisitos de edad puede que su pago se llegue a retener.
+                </div>
+            </div>
+
+        </div>
+    </div>
+    `;
+
+    // 2. Inyectar el HTML al final del body
+    document.body.insertAdjacentHTML('beforeend', htmlModal);
+
+    // 3. Obtener elementos para animaciones y lógica
+    const overlay = document.getElementById('nbs-aviso-overlay');
+    const content = overlay.querySelector('div');
+    const btn = document.getElementById('nbs-btn-aceptar');
+
+    // 4. Animación de entrada
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        content.style.transform = 'translateY(0)';
+    }, 100); // Pequeño delay para que cargue la página
+
+    // 5. Efecto Hover en el botón (JavaScript para mantener todo en uno)
+    btn.onmouseover = function() {
+        this.style.background = '#00bcd4';
+        this.style.color = '#fff';
+        this.style.boxShadow = '0 4px 20px rgba(0,188,212,0.4)';
+    }
+    btn.onmouseout = function() {
+        this.style.background = '#fff';
+        this.style.color = '#000';
+        this.style.boxShadow = '0 4px 15px rgba(255,255,255,0.2)';
+    }
+
+    // 6. Lógica de cierre con animación
+    btn.onclick = function() {
+        overlay.style.opacity = '0';
+        content.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            overlay.remove();
+        }, 500); // Espera a que termine la animación
+    };
+
+})();
+</script>
+
 
 <!-- ================= ESTRUCTURA HTML DE LOS PANELES ================= -->
 
@@ -1908,7 +2043,7 @@ setInterval(() => {
 <div class="card">
 
   <!-- BOTÓN ADD -->
-  <button class="btn-add" onclick="agregarAlCarrito('40 robux', 0.75)">
+  <button class="btn-add" onclick="agregarAlCarrito('40 robux', 0.85)">
     ADD<br>🛒
   </button>
 
