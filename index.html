@@ -19,6 +19,10 @@
             --accent: #ffa502;
             --stripe: #2a2a2d;
             --glow: rgba(255, 71, 87, 0.15);
+            --badge-discount: #2ed573;
+            --badge-info: #1e90ff;
+            --badge-warning: #ffa502;
+            --badge-danger: #ff4757;
         }
 
         body {
@@ -43,7 +47,6 @@
             border: 1px solid #222;
             backdrop-filter: blur(10px);
             position: relative;
-            overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
@@ -56,11 +59,10 @@
             color: var(--primary);
             text-transform: uppercase;
             text-shadow: 0 0 15px var(--glow);
-            position: relative;
         }
 
-        .version { font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; position: relative; }
-        .promo { color: var(--accent); font-size: 1rem; margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; position: relative; }
+        .version { font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; }
+        .promo { color: var(--accent); font-size: 1rem; margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
         h2 {
             font-family: 'Poppins', sans-serif;
@@ -92,16 +94,6 @@
             overflow: hidden;
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3%3Cfilter id="noiseFilter"%3%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3%3C/filter%3%3%3Crect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.02"/%3%3C/svg%3%3E');
-            opacity: 0.5;
-            z-index: 0;
-            pointer-events: none;
-        }
-
         .card:hover {
             transform: translateY(-8px) scale(1.02);
             border-color: #333;
@@ -113,75 +105,80 @@
         .cart-icon { font-size: 1.4rem; opacity: 0.8; }
 
         .item-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .item-price { font-size: 1.8rem; font-weight: 800; color: #2ed573; margin-bottom: 12px; }
-        .item-note { font-size: 0.85rem; color: var(--accent); margin-bottom: 20px; flex-grow: 1; min-height: 40px; }
+        .item-price { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 12px; }
+        .item-note { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; flex-grow: 1; min-height: 40px; }
 
-        .btn-buy {
-            background: var(--whatsapp);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #1da851;
+        .badge {
+            position: absolute; top: 15px; right: -35px;
+            text-transform: uppercase; font-size: 0.65rem; font-weight: 800;
+            padding: 5px 40px; transform: rotate(45deg); color: #000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1;
+        }
+        .badge-discount { background-color: var(--badge-discount); }
+        .badge-info { background-color: var(--badge-info); color: #fff; }
+        .badge-warning { background-color: var(--badge-warning); }
+        .badge-danger { background-color: var(--badge-danger); color: #fff; }
+
+        .ff-id-input {
+            background: rgba(0,0,0,0.3); border: 1px solid #333; color: #fff;
+            padding: 10px; border-radius: 8px; margin-bottom: 15px; width: calc(100% - 22px);
         }
 
-        .btn-buy:hover { background: #20c25d; transform: translateY(-1px); box-shadow: 0 5px 0 #1da851; }
-        .btn-buy:active { transform: translateY(3px); box-shadow: 0 1px 0 #1da851; }
+        .btn-buy {
+            background: var(--whatsapp); color: white; border: none; padding: 15px;
+            border-radius: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 4px 0 #1da851; transition: 0.2s;
+        }
 
         .btn-stripe {
-            background: var(--stripe);
-            color: #555;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            cursor: not-allowed;
-            text-decoration: line-through;
-            opacity: 0.6;
+            background: var(--stripe); color: #555; border: none; padding: 10px;
+            border-radius: 8px; font-size: 0.75rem; text-decoration: line-through; margin-top: 8px;
+        }
+
+        /* --- OVERLAY DE SELECCIÓN --- */
+        #selection-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 6, 0.98); display: none; flex-direction: column;
+            align-items: center; z-index: 10000; overflow-y: auto; padding: 40px 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .selection-container { width: 100%; max-width: 400px; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .opt-card {
+            background: #111113; border: 1px solid #222; border-radius: 20px;
+            padding: 25px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .opt-card:hover { border-color: var(--primary); background: #161619; }
+        .opt-title { color: var(--primary); font-weight: 800; text-transform: uppercase; margin: 10px 0 5px; font-size: 1.1rem; }
+        .opt-desc { color: var(--text-muted); font-size: 0.85rem; margin: 0; line-height: 1.4; }
+        .seguro-premium { border: 2px solid var(--accent) !important; }
+        .btn-buy-special {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white; border: none; width: 100%; padding: 15px; border-radius: 12px;
+            font-weight: 800; margin-top: 15px; cursor: pointer; text-transform: uppercase;
         }
 
         #overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.97);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.97); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px);
         }
+        .loader { border: 5px solid #1a1a1d; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .loader {
-            border: 5px solid #1a1a1d;
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-            box-shadow: 0 0 20px var(--glow);
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 5px; }
-            .card { padding: 15px; }
-            .item-name { font-size: 1.1rem; }
-            .item-price { font-size: 1.3rem; }
-        }
+        /* Skeleton Loading */
+        .skeleton .card { pointer-events: none; }
+        .skeleton .card div { background: #1a1a1d; color: transparent !important; border-radius: 4px; height: 20px; margin-bottom: 10px; position: relative; overflow: hidden;}
+        .skeleton .card div::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
-<body>
+<body class="skeleton">
 
 <header>
-    <div class="promo">🔥 improvement and error solutions</div>
+    <div class="promo">🔥 IMPROVEMENT AND ERROR SOLUTIONS</div>
     <h1 class="logo">New Brothers Studios</h1>
     <div class="version">Versión 2026.14.9</div>
 </header>
@@ -192,65 +189,100 @@
     <p id="timer" style="font-size:0.9rem; color: var(--text-muted);">Por favor espere 5s</p>
 </div>
 
-<h2>⏣ Paquetes Normales</h2>
-<div class="grid" id="sec-normal"></div>
+<div id="selection-overlay">
+    <div class="selection-container">
+        <h2 style="text-align: center; color: #fff; margin-bottom: 30px; font-family: 'Poppins';">ESCOGE 1 OPCIÓN</h2>
+        <div class="opt-card" onclick="finalizarTodo('Entrega 100% Segura')">
+            <span style="font-size: 35px;">🔒</span>
+            <div class="opt-title">Entrega 100% Segura</div>
+            <p class="opt-desc">Tus compras y transacciones están protegidas.</p>
+        </div>
+        <div class="opt-card" onclick="finalizarTodo('Soporte Mejorado')">
+            <span style="font-size: 35px;">🎧</span>
+            <div class="opt-title">Soporte Mejorado</div>
+            <p class="opt-desc">Atención especial directa.</p>
+        </div>
+        <div class="opt-card" onclick="finalizarTodo('Entrega Rápida')">
+            <span style="font-size: 35px;">⚡</span>
+            <div class="opt-title">Entrega Rápida</div>
+            <p class="opt-desc">Entregas 70% Más rápidas.</p>
+        </div>
+        <div class="opt-card seguro-premium">
+            <span style="font-size: 35px;">🛡️</span>
+            <div class="opt-title" style="color: var(--accent);">Seguro de compra</div>
+            <p class="opt-desc">Todo el movimiento en tiempo real, obtenga una compra 100% Segura. Plazos de reencargo por infracciones.</p>
+            <button class="btn-buy-special" onclick="finalizarTodo('SEGURO DE COMPRA ($5.99)')">BUY $5.99</button>
+        </div>
+    </div>
+</div>
 
-<h2>❇️ PREMIUM+ Requerido</h2>
-<div class="grid" id="sec-premium-plus"></div>
+<div id="skeleton-container" class="grid"></div>
 
-<h2>✳️ PREMIUM Pro Requerido</h2>
-<div class="grid" id="sec-premium-pro"></div>
+<div class="main-content" style="display:none;">
+    <h2>⏣ Paquetes Normales</h2>
+    <div class="grid" id="sec-normal"></div>
 
-<h2>🔰 PREMIUM LIMITED Requerido</h2>
-<div class="grid" id="sec-premium-limited"></div>
+    <h2>❇️ PREMIUM+ Requerido</h2>
+    <div class="grid" id="sec-premium-plus"></div>
 
-<h2>⚠️ Archivo / Otros</h2>
-<div class="grid" id="sec-otros-robux"></div>
+    <h2>✳️ PREMIUM Pro Requerido</h2>
+    <div class="grid" id="sec-premium-pro"></div>
 
-<h2>⭐ Paquetes Especiales</h2>
-<div class="grid" id="sec-especiales"></div>
+    <h2>🔰 PREMIUM LIMITED Requerido</h2>
+    <div class="grid" id="sec-premium-limited"></div>
 
-<h2>✨ Membresías</h2>
-<div class="grid" id="sec-membresias"></div>
+    <h2>⚠️ Archivo / Otros</h2>
+    <div class="grid" id="sec-otros-robux"></div>
 
-<h2>💎 Free Fire</h2>
-<div class="grid" id="sec-freefire"></div>
+    <h2>⭐ Paquetes Especiales</h2>
+    <div class="grid" id="sec-especiales"></div>
+
+    <h2>✨ Membresías</h2>
+    <div class="grid" id="sec-membresias"></div>
+
+    <h2>💎 Free Fire</h2>
+    <div class="grid" id="sec-freefire"></div>
+</div>
 
 <script>
+const CONFIG = { phone: "50379197720", loadTime: 5, skeletonTime: 2000 };
+let currentOrder = {};
+
 const items = [
+    // NORMALES
     { cat: 'normal', qty: "40 robux", price: "$1.24", note: "-3% descuento" },
     { cat: 'normal', qty: "80 robux", price: "$2.40", note: "9% Más precio" },
     { cat: 'normal', qty: "400 robux", price: "$8.49", note: "Producto Normal" },
     { cat: 'normal', qty: "800 robux", price: "$13.99", note: "Producto Normal" },
     { cat: 'normal', qty: "2000 robux", price: "$29.99", note: "SIN PREMIUM REQUERIDO." },
-
+    // PREMIUM+
     { cat: 'pre-plus', qty: "480 robux", price: "$5.25", note: "Disponible con PREMIUM+" },
     { cat: 'pre-plus', qty: "500 robux", price: "$4.99", note: "Disponible con PREMIUM+" },
     { cat: 'pre-plus', qty: "580 robux", price: "$5.99", note: "Disponible con PREMIUM+" },
     { cat: 'pre-plus', qty: "660 robux", price: "$6.99", note: "Disponible con PREMIUM+" },
-
+    // PREMIUM PRO
     { cat: 'pre-pro', qty: "740 robux", price: "$7.99", note: "Disponible con PREMIUM Pro." },
     { cat: 'pre-pro', qty: "920 robux", price: "$12.19", note: "Disponible con PREMIUM Pro." },
-
+    // PREMIUM LIMITED
     { cat: 'pre-lim', qty: "1,160 robux", price: "$12.10", note: "Disponible con PREMIUM LIMITED." },
     { cat: 'pre-lim', qty: "1,400 robux", price: "$15.19", note: "Disponible con PREMIUM LIMITED." },
     { cat: 'pre-lim', qty: "1,500 robux", price: "$15.29", note: "Disponible con PREMIUM LIMITED." },
     { cat: 'pre-lim', qty: "1,700 robux", price: "$17.99", note: "Disponible con PREMIUM LIMITED." },
     { cat: 'pre-lim', qty: "1,820 robux", price: "$19.49", note: "Disponible con PREMIUM LIMITED." },
     { cat: 'pre-lim', qty: "2,000 robux", price: "$20.19", note: "Disponible con PREMIUM LIMITED." },
-
+    // OTROS
     { cat: 'otros', qty: "160 robux", price: "$8.00", note: "No disponible." },
     { cat: 'otros', qty: "200 robux", price: "$8.00", note: "No disponible." },
     { cat: 'otros', qty: "240 robux", price: "$8.00", note: "Casi Listo." },
     { cat: 'otros', qty: "280 robux", price: "$99.99", note: "Descontinuado." },
     { cat: 'otros', qty: "320 robux", price: "$99.99", note: "Descontinuado." },
     { cat: 'otros', qty: "1,000 robux", price: "$10.00", note: "-3% descuento" },
-
+    // ESPECIALES
     { cat: 'esp', qty: "400R + Alfombra", price: "$12.49", note: "Steal a Brainrot | -5% desc." },
     { cat: 'esp', qty: "800R + Alfombra", price: "$18.99", note: "Steal a Brainrot | -5% desc." },
     { cat: 'esp', qty: "1000R + Adm", price: "$69.99", note: "Comandos × Steal a Brainrot" },
     { cat: 'esp', qty: "2K R + Lucky secret", price: "$36.49", note: "DISPONIBLE CON V.I.P!" },
-
+    // MEMBRESIAS
     { cat: 'mem', qty: "Membr. 4 días", price: "$1.99", note: "+25% robux extra" },
     { cat: 'mem', qty: "Membr. 8 días", price: "$2.99", note: "+25% robux extra" },
     { cat: 'mem', qty: "Membr. 15 días", price: "$4.99", note: "+25% robux extra!" }
@@ -264,40 +296,91 @@ const ffData = [
     { q: "2,180", p: "$22.99" }
 ];
 
-function createCard(item, containerId, icon) {
+function getBadgeHtml(note) {
+    const n = note.toLowerCase();
+    if (n.includes('desc.') || n.includes('descuento')) return `<div class="badge badge-discount">OFF</div>`;
+    if (n.includes('extra') || n.includes('más')) return `<div class="badge badge-info">BONUS</div>`;
+    if (n.includes('requerido') || n.includes('disponible con')) return `<div class="badge badge-warning">PREMIUM</div>`;
+    if (n.includes('no disponible') || n.includes('descontinuado')) return `<div class="badge badge-danger">X</div>`;
+    return '';
+}
+
+function createCard(item, containerId, icon, isFF = false) {
     const container = document.getElementById(containerId);
     if(!container) return;
     const card = document.createElement('div');
     card.className = 'card';
+    const badgeHtml = getBadgeHtml(item.note);
+    let ffInputHtml = '';
+    let action = `iniciarCarga('${item.qty}', '${item.price}', '${item.note}')`;
+    
+    if (isFF) {
+        const inputId = `ff-id-${item.qty.replace(/\s+/g, '').replace(/,/g,'')}`;
+        ffInputHtml = `<input type="text" id="${inputId}" class="ff-id-input" placeholder="ID Jugador">`;
+        action = `validarFF('${inputId}', '${item.qty}', '${item.price}')`;
+    }
+
     card.innerHTML = `
+        ${badgeHtml}
         <div class="card-header"><span class="add-tag">ADD</span><span class="cart-icon">${icon}</span></div>
         <div class="item-name">${item.qty}</div>
         <div class="item-price">${item.price}</div>
         <div class="item-note">${item.note}</div>
-        <button class="btn-buy" onclick="comprar('${item.qty}', '${item.price}', '${item.note}')">COMPRAR!</button>
-        <button class="btn-stripe">comprar por Stripe!</button>
+        ${ffInputHtml}
+        <button class="btn-buy" onclick="${action}">COMPRAR!</button>
+        <button class="btn-stripe">Stripe!</button>
     `;
     container.appendChild(card);
 }
 
-function comprar(prod, price, note) {
+function validarFF(inputId, prod, price) {
+    const id = document.getElementById(inputId).value.trim();
+    if (id === "") {
+        const el = document.getElementById(inputId);
+        el.style.borderColor = "#ff4757";
+        setTimeout(() => el.style.borderColor = "#333", 500);
+        return;
+    }
+    iniciarCarga(prod, price, "ID FF: " + id);
+}
+
+function iniciarCarga(prod, price, note) {
+    currentOrder = { prod, price, note };
     const overlay = document.getElementById('overlay');
     const timerText = document.getElementById('timer');
     overlay.style.display = 'flex';
-    let count = 5;
+    let count = CONFIG.loadTime;
+    timerText.innerText = `Por favor espere ${count}s`;
+    
     const interval = setInterval(() => {
         count--;
         timerText.innerText = `Por favor espere ${count}s`;
         if(count <= 0) {
             clearInterval(interval);
-            window.location.href = `https://wa.me/50379197720?text=Hola! Quiero comprar: *${prod}* por *${price}*. Nota: ${note}`;
+            overlay.style.display = 'none';
+            document.getElementById('selection-overlay').style.display = 'flex';
+            window.scrollTo(0,0);
         }
     }, 1000);
 }
 
-const catMap = {'normal': 'sec-normal','pre-plus': 'sec-premium-plus','pre-pro': 'sec-premium-pro','pre-lim': 'sec-premium-limited','otros': 'sec-otros-robux','esp': 'sec-especiales','mem': 'sec-membresias'};
-items.forEach(i => createCard(i, catMap[i.cat], '🛒'));
-ffData.forEach(f => createCard({qty: f.q + " Diamantes", price: f.p, note: "ID requerida"}, 'sec-freefire', '💎'));
+function finalizarTodo(garantia) {
+    const text = `Hola! Quiero comprar: *${currentOrder.prod}*\n💰 Precio: *${currentOrder.price}*\n📝 Nota: ${currentOrder.note}\n🛡️ Opción: *${garantia}*`;
+    window.location.href = `https://wa.me/${CONFIG.phone}?text=${encodeURIComponent(text)}`;
+}
+
+// Inicialización
+const skContainer = document.getElementById('skeleton-container');
+for(let i=0; i<8; i++) skContainer.innerHTML += `<div class="card"><div></div><div></div><div></div><div></div><div></div></div>`;
+
+setTimeout(() => {
+    document.body.classList.remove('skeleton');
+    skContainer.style.display = 'none';
+    document.querySelector('.main-content').style.display = 'block';
+    const catMap = {'normal': 'sec-normal','pre-plus': 'sec-premium-plus','pre-pro': 'sec-premium-pro','pre-lim': 'sec-premium-limited','otros': 'sec-otros-robux','esp': 'sec-especiales','mem': 'sec-membresias'};
+    items.forEach(i => createCard(i, catMap[i.cat], '🛒'));
+    ffData.forEach(f => createCard({qty: f.q + " Diamantes", price: f.p, note: "ID requerida"}, 'sec-freefire', '💎', true));
+}, CONFIG.skeletonTime);
 </script>
 </body>
 </html>
